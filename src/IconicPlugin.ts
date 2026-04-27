@@ -29,6 +29,7 @@ export const PLUGIN_TAB_TYPES = [
 	'backlink',
 	'file-properties',
 	'footnotes',
+	'localgraph',
 	'outgoing-link',
 	'outline',
 ];
