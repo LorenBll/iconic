@@ -179,7 +179,10 @@ const REGEX_COLOR_MIX = /color-mix\(in srgb, rgba?\((\d+), (\d+), (\d+)(?:, ([\d
  * Shared utility functions for setting icon colors.
  */
 export default class ColorUtils {
-	private static readonly convertEl = document.createElement('div');
+	/**
+	 * Dummy element for converting color strings, used by {@link toRgb}.
+	 */
+	private static readonly convertEl = createDiv();
 
 	/**
 	 * Convert color into rgb/rgba() string.
@@ -189,10 +192,10 @@ export default class ColorUtils {
 		let cssVar = '--icon-color';
 		let cssColor = RGB_FALLBACK;
 		if (!color) {
-			cssColor = getComputedStyle(document.body).getPropertyValue(cssVar);
+			cssColor = getComputedStyle(activeDocument.body).getPropertyValue(cssVar);
 		} else if (COLORS.has(color)) {
 			cssVar = COLORS.get(color) ?? cssVar;
-			cssColor = window.getComputedStyle(document.body).getPropertyValue(cssVar);
+			cssColor = window.getComputedStyle(activeDocument.body).getPropertyValue(cssVar);
 		} else if (CSS_COLORS.has(color)) {
 			cssColor = CSS_COLORS.get(color) ?? cssColor;
 		} else if (CSS.supports('color', color)) {
