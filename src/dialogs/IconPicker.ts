@@ -793,6 +793,6 @@ export default class IconPicker extends Modal {
 		this.contentEl.empty();
 		this.iconManager.stopEventListeners();
 		this.iconManager.stopMutationObservers();
-		this.plugin.saveSettings(); // Save any changes to dialogState
+		void this.plugin.saveSettings(); // Save any changes to dialogState
 	}
 }

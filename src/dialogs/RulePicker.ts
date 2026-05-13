@@ -322,6 +322,6 @@ export default class RulePicker extends Modal {
 		for (const ghostEl of this.modalEl.doc.body.findAll(':scope > .iconic-rule-dragger')) {
 			ghostEl.remove();
 		}
-		this.plugin.saveSettings(); // Save any changes to dialogState
+		void this.plugin.saveSettings(); // Save any changes to dialogState
 	}
 }

@@ -346,7 +346,7 @@ export default class IconicPlugin extends Plugin {
 				if (fileIcon) {
 					this.settings.fileIcons[path] = fileIcon;
 					delete this.settings.fileIcons[oldPath];
-					this.saveSettings();
+					void this.saveSettings();
 				}
 				const { filename, tree } = this.splitFilePath(path);
 				const { filename: oldFilename, tree: oldTree } = this.splitFilePath(oldPath);
@@ -370,7 +370,7 @@ export default class IconicPlugin extends Plugin {
 			this.registerEvent(this.app.vault.on('delete', (tAbstractFile) => {
 				const { path } = tAbstractFile;
 				delete this.settings.fileIcons[path];
-				this.saveSettings();
+				void this.saveSettings();
 				// If a deleted file/folder was associated with a ruling, update rulings
 				const page = tAbstractFile instanceof TFile ? 'file' : 'folder';
 				if (this.ruleManager?.checkRuling(page, path)) {
@@ -414,7 +414,7 @@ export default class IconicPlugin extends Plugin {
 					else if (this.settings.biggerIcons === 'mobile') this.settings.biggerIcons = 'off';
 					else if (this.settings.biggerIcons === 'off') this.settings.biggerIcons = 'mobile';
 				}
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshBody();
 			}
 		}));
@@ -435,7 +435,7 @@ export default class IconicPlugin extends Plugin {
 					else if (this.settings.clickableIcons === 'mobile') this.settings.clickableIcons = 'off';
 					else if (this.settings.clickableIcons === 'off') this.settings.clickableIcons = 'mobile';
 				}
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers();
 				this.refreshBody();
 			}
@@ -447,7 +447,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleAllFileIcons,
 			callback: () => {
 				this.settings.showAllFileIcons = !this.settings.showAllFileIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers('file');
 			}
 		}));
@@ -458,7 +458,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleAllFolderIcons,
 			callback: () => {
 				this.settings.showAllFolderIcons = !this.settings.showAllFolderIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers('file', 'tag');
 			}
 		}));
@@ -469,7 +469,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleMinimalFolderIcons,
 			callback: () => {
 				this.settings.minimalFolderIcons = !this.settings.minimalFolderIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers('file', 'tag');
 			}
 		}));
@@ -480,7 +480,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleMarkdownTabIcons,
 			callback: () => {
 				this.settings.showMarkdownTabIcons = !this.settings.showMarkdownTabIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshBody();
 			}
 		}));
@@ -491,7 +491,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleTitleIcons,
 			callback: () => {
 				this.settings.showTitleIcons = !this.settings.showTitleIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers('file');
 			}
 		}));
@@ -502,7 +502,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleTagPillIcons,
 			callback: () => {
 				this.settings.showTagPillIcons = !this.settings.showTagPillIcons;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers('tag');
 			}
 		});
@@ -513,7 +513,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleMenuActions,
 			callback: () => {
 				this.settings.showMenuActions = !this.settings.showMenuActions;
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshManagers();
 				this.menuManager?.closeAndFlush();
 			}
@@ -525,7 +525,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleSuggestionIcons,
 			callback: () => {
 				this.settings.showSuggestionIcons = !this.settings.showSuggestionIcons;
-				this.saveSettings();
+				void this.saveSettings();
 			}
 		});
 
@@ -535,7 +535,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleQuickSwitcherIcons,
 			callback: () => {
 				this.settings.showQuickSwitcherIcons = !this.settings.showQuickSwitcherIcons;
-				this.saveSettings();
+				void this.saveSettings();
 			}
 		});
 
@@ -545,7 +545,7 @@ export default class IconicPlugin extends Plugin {
 			name: STRINGS.commands.toggleMoveFileIcons,
 			callback: () => {
 				this.settings.showMoveFileIcons = !this.settings.showMoveFileIcons;
-				this.saveSettings();
+				void this.saveSettings();
 			}
 		});
 
@@ -565,7 +565,7 @@ export default class IconicPlugin extends Plugin {
 					else if (this.settings.biggerSearchResults === 'mobile') this.settings.biggerSearchResults = 'off';
 					else if (this.settings.biggerSearchResults === 'off') this.settings.biggerSearchResults = 'mobile';
 				}
-				this.saveSettings();
+				void this.saveSettings();
 				this.refreshBody();
 			}
 		}));
@@ -1194,7 +1194,7 @@ export default class IconicPlugin extends Plugin {
 	 */
 	saveAppIcon(appItem: AppItem, icon: string | null, color: string | null): void {
 		this.updateIconSetting(this.settings.appIcons, appItem.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1202,7 +1202,7 @@ export default class IconicPlugin extends Plugin {
 	 */
 	saveTabIcon(tab: TabItem, icon: string | null, color: string | null): void {
 		this.updateIconSetting(this.settings.tabIcons, tab.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1214,7 +1214,7 @@ export default class IconicPlugin extends Plugin {
 		if (icon !== fileBase?.icon) triggers.add('icon');
 		if (color !== fileBase?.color) triggers.add('color');
 		this.updateIconSetting(this.settings.fileIcons, file.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 		this.ruleManager?.triggerRulings('file', ...triggers);
 	}
 
@@ -1233,7 +1233,7 @@ export default class IconicPlugin extends Plugin {
 			if (color !== bmarkBase?.color) triggers.add('color');
 			this.updateIconSetting(this.settings.fileIcons, file.id, file.icon, file.color);
 		}
-		this.saveSettings();
+		void this.saveSettings();
 		this.ruleManager?.triggerRulings('file', ...triggers);
 	}
 
@@ -1254,7 +1254,7 @@ export default class IconicPlugin extends Plugin {
 				this.updateIconSetting(this.settings.bookmarkIcons, bmark.id, icon, color);
 			}
 		}
-		this.saveSettings();
+		void this.saveSettings();
 		this.ruleManager?.triggerRulings('file', ...triggers);
 	}
 
@@ -1281,7 +1281,7 @@ export default class IconicPlugin extends Plugin {
 				}
 			}
 		}
-		this.saveSettings();
+		void this.saveSettings();
 		this.ruleManager?.triggerRulings('file', ...triggers);
 	}
 
@@ -1290,7 +1290,7 @@ export default class IconicPlugin extends Plugin {
 	 */
 	saveTagIcon(tag: TagItem, icon: string | null, color: string | null): void {
 		this.updateIconSetting(this.settings.tagIcons, tag.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1298,7 +1298,7 @@ export default class IconicPlugin extends Plugin {
 	 */
 	savePropertyIcon(prop: PropertyItem, icon: string | null, color: string | null): void {
 		this.updateIconSetting(this.settings.propertyIcons, prop.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1312,7 +1312,7 @@ export default class IconicPlugin extends Plugin {
 			if (color !== undefined) prop.color = color;
 			this.updateIconSetting(this.settings.propertyIcons, prop.id, prop.icon, prop.color);
 		}
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1320,7 +1320,7 @@ export default class IconicPlugin extends Plugin {
 	 */
 	saveRibbonIcon(ribbonItem: RibbonItem, icon: string | null, color: string | null): void {
 		this.updateIconSetting(this.settings.ribbonIcons, ribbonItem.id, icon, color);
-		this.saveSettings();
+		void this.saveSettings();
 	}
 
 	/**
@@ -1424,12 +1424,12 @@ export default class IconicPlugin extends Plugin {
 
 		// Save and backup settings
 		await this.saveData(this.settings);
-		this.saveBackup();
+		await this.saveBackup();
 		this.isSaving = false;
 	}
 
 	/**
-	 * Backup settings to separate file
+	 * Backup settings into a numbered backup file.
 	 */
 	async saveBackup(): Promise<void> {
 		const dataPath = normalizePath(this.manifest.dir + '/data.json');
