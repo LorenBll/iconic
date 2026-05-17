@@ -1,13 +1,14 @@
 import { Instruction, Plugin, SuggestModal, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import IconicPlugin, { PLUGIN_TAB_TYPES } from 'src/IconicPlugin.js';
 import IconManager from 'src/managers/IconManager.js';
+import ObsidianUtils from 'src/ObsidianUtils.js';
 
-type PluginModal = SuggestModal<any> & { plugin: Plugin };
+type PluginModal = SuggestModal<unknown> & { plugin: Plugin };
 
 /**
  * Allow type-safe access to a modal.plugin property.
  */
-function isPluginModal(modal: SuggestModal<any>): modal is PluginModal {
+function isPluginModal(modal: SuggestModal<unknown>): modal is PluginModal {
 	return (modal as PluginModal).plugin instanceof Plugin;
 }
 
@@ -47,7 +48,7 @@ export default class SuggestionDialogIconManager extends IconManager {
 
 				// Proxy renderSuggestion() for each instance
 				modal.renderSuggestion = new Proxy(modal.renderSuggestion, {
-					apply(renderSuggestion, modal: SuggestModal<any>, args: [any, HTMLElement]) {
+					apply(renderSuggestion, modal: SuggestModal<unknown>, args: [unknown, HTMLElement]) {
 						// Call base method first to pre-populate elements
 						const returnValue = renderSuggestion.call(modal, ...args);
 
@@ -79,7 +80,7 @@ export default class SuggestionDialogIconManager extends IconManager {
 
 		// Catch Another Quick Switcher, which never call super.onOpen()
 		this.setInstructionsProxy = new Proxy(SuggestModal.prototype.setInstructions, {
-			apply(setInstructions, modal: SuggestModal<any>, args: [Instruction[]]) {
+			apply(setInstructions, modal: SuggestModal<unknown>, args: [Instruction[]]) {
 				if (manager.isDisabled()) {
 					return setInstructions.call(modal, ...args);
 				}
@@ -91,7 +92,7 @@ export default class SuggestionDialogIconManager extends IconManager {
 
 				// Proxy renderSuggestion() for every instance
 				modal.renderSuggestion = new Proxy(modal.renderSuggestion, {
-					apply(renderSuggestion, modal: SuggestModal<any>, args: [any, HTMLElement]) {
+					apply(renderSuggestion, modal: SuggestModal<unknown>, args: [unknown, HTMLElement]) {
 						if (manager.isDisabled()) {
 							return renderSuggestion.call(modal, ...args);
 						}
@@ -116,7 +117,7 @@ export default class SuggestionDialogIconManager extends IconManager {
 	/**
 	 * Determine which type of modal this is.
 	 */
-	private getModalType(modal: SuggestModal<any>): string | null {
+	private getModalType(modal: SuggestModal<unknown>): string | null {
 		// Check for Another Quick Switcher
 		if (modal.modalEl.hasClass('another-quick-switcher__modal-prompt')) {
 			return ANOTHER_QUICK_SWITCHER;
@@ -143,25 +144,27 @@ export default class SuggestionDialogIconManager extends IconManager {
 	/**
 	 * Refresh icon of a Quick Switcher suggestion.
 	 */
-	private refreshSuggestionIconQS(value: any, el: HTMLElement): void {
-		switch (value?.type) {
+	private refreshSuggestionIconQS(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value)) return;
+
+		switch (value.type) {
 			case 'alias': // Fallthrough
 			case 'file': {
-				if (value.file instanceof TFile) {
-					const file = this.plugin.getFileItem(value.file.path);
-					const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
-					if (rule.icon || rule.color) {
-						const iconEl = el.find('.iconic-icon') ?? el.createDiv();
-						el.prepend(iconEl);
-						this.refreshIcon(rule, iconEl);
-					}
+				if (!(value.file instanceof TFile)) break;
+				const file = this.plugin.getFileItem(value.file.path);
+				const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
+				if (rule.icon || rule.color) {
+					const iconEl = el.find('.iconic-icon') ?? el.createDiv();
+					el.prepend(iconEl);
+					this.refreshIcon(rule, iconEl);
 				}
 				break;
 			}
 			case 'bookmark': {
-				const bmarkBase = value.item;
-				if (bmarkBase.type === 'file') {
-					const file = this.plugin.getFileItem(bmarkBase.path);
+				if (!ObsidianUtils.isObsidianBookmark(value.item)) break;
+				const oBmark = value.item;
+				if (oBmark.type === 'file' && oBmark.path) {
+					const file = this.plugin.getFileItem(oBmark.path);
 					const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
 					if (rule.icon || rule.color) {
 						const iconEl = el.find('.iconic-icon') ?? el.createDiv();
@@ -176,26 +179,28 @@ export default class SuggestionDialogIconManager extends IconManager {
 	/**
 	 * Refresh icon of a Quick Switcher++ suggestion.
 	 */
-	private refreshSuggestionIconQSPP(value: any, el: HTMLElement): void {
-		switch (value?.type) {
+	private refreshSuggestionIconQSPP(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value)) return;
+
+		switch (value.type) {
 			case 'relatedItemsList': // Fallthrough
 			case 'file': {
-				if (value.file instanceof TFile) {
-					const file = this.plugin.getFileItem(value.file.path);
-					const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
-					if (rule.icon || rule.color) {
-						const iconEl = el.find('.iconic-icon') ?? el.createDiv();
-						el.prepend(iconEl);
-						this.refreshIcon(rule, iconEl);
-					}
+				if (!(value.file instanceof TFile)) break;
+				const file = this.plugin.getFileItem(value.file.path);
+				const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
+				if (rule.icon || rule.color) {
+					const iconEl = el.find('.iconic-icon') ?? el.createDiv();
+					el.prepend(iconEl);
+					this.refreshIcon(rule, iconEl);
 				}
 				break;
 			}
 			case 'bookmark': {
-				const bmarkBase = value.item;
-				if (bmarkBase.type === 'file' || bmarkBase.type === 'folder') {
-					const file = this.plugin.getFileItem(bmarkBase.path);
-					const rule = this.plugin.ruleManager?.checkRuling(bmarkBase.type, file.id) ?? file;
+				if (!ObsidianUtils.isObsidianBookmark(value.item)) break;
+				const oBmark = value.item;
+				if ((oBmark.type === 'file' || oBmark.type === 'folder') && oBmark.path) {
+					const file = this.plugin.getFileItem(oBmark.path);
+					const rule = this.plugin.ruleManager?.checkRuling(oBmark.type, file.id) ?? file;
 					if (rule.icon || rule.color) {
 						const iconEl = el.find('.iconic-icon') ?? el.createDiv();
 						el.prepend(iconEl);
@@ -235,12 +240,11 @@ export default class SuggestionDialogIconManager extends IconManager {
 	/**
 	 * Refresh icon of Another Quick Switcher suggestion.
 	 */
-	private refreshSuggestionIconAQS(value: any, el: HTMLElement): void {
-		const tFile = value.file;
-		if (!(tFile instanceof TFile)) return;
+	private refreshSuggestionIconAQS(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value) || !(value.file instanceof TFile)) return;
 
 		const itemEl = el.find('.another-quick-switcher__item');
-		const file = this.plugin.getFileItem(tFile.path);
+		const file = this.plugin.getFileItem(value.file.path);
 		const rule = this.plugin.ruleManager?.checkRuling('file', file.id) ?? file;
 
 		if (rule.icon || rule.color) {
@@ -253,9 +257,8 @@ export default class SuggestionDialogIconManager extends IconManager {
 	/**
 	 * Refresh icon of a "Move file" dialog suggestion.
 	 */
-	private refreshSuggestionIconMFD(value: any, el: HTMLElement): void {
-		const tFolder = value?.item;
-		if (!(tFolder instanceof TFolder)) return;
+	private refreshSuggestionIconMFD(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value) || !(value.item instanceof TFolder)) return;
 
 		el.addClass('mod-complex');
 		const contentEl = el.createDiv({ cls: 'suggestion-content' });
@@ -266,7 +269,7 @@ export default class SuggestionDialogIconManager extends IconManager {
 			if (node !== contentEl) titleEl.append(node);
 		}
 
-		const folder = this.plugin.getFileItem(tFolder.path);
+		const folder = this.plugin.getFileItem(value.item.path);
 		const rule = this.plugin.ruleManager?.checkRuling('folder', folder.id) ?? folder;
 
 		if (rule.icon || rule.color) {

@@ -1,26 +1,22 @@
 import { AbstractInputSuggest, EditorSuggest, TFile } from 'obsidian';
 import IconicPlugin from 'src/IconicPlugin.js';
 import IconManager from 'src/managers/IconManager.js';
+import ObsidianUtils from 'src/ObsidianUtils.js';
 
 const FILE_SUGGESTION = 'file';
 const TAG_SUGGESTION = 'tag';
 const PROPERTY_SUGGESTION = 'property';
-const UNKNOWN_SUGGESTION = null;
 
 /**
  * Intercepts suggestion popovers to add custom icons.
  */
 export default class SuggestionIconManager extends IconManager {
-	// @ts-expect-error (Private API)
-	private showAbstractSuggestionsOriginal: typeof AbstractInputSuggest.prototype.showSuggestions | null = null;
-	// @ts-expect-error (Private API)
-	private showAbstractSuggestionsProxy: typeof AbstractInputSuggest.prototype.showSuggestions | null = null;
+	private showAbstractSuggestionsOriginal: unknown = null;
+	private showAbstractSuggestionsProxy: unknown = null;
 	private renderAbstractSuggestionProxy: typeof AbstractInputSuggest.prototype.renderSuggestion | null = null;
 
-	// @ts-expect-error (Private API)
-	private showEditorSuggestionsOriginal: typeof AbstractInputSuggest.prototype.showSuggestions | null = null;
-	// @ts-expect-error (Private API)
-	private showEditorSuggestionsProxy: typeof AbstractInputSuggest.prototype.showSuggestions | null = null;
+	private showEditorSuggestionsOriginal: unknown = null;
+	private showEditorSuggestionsProxy: unknown = null;
 	private renderEditorSuggestionProxy: typeof AbstractInputSuggest.prototype.renderSuggestion | null = null;
 
 	constructor(plugin: IconicPlugin) {
@@ -42,7 +38,7 @@ export default class SuggestionIconManager extends IconManager {
 		// Catch popovers before they open
 		// @ts-expect-error (Private API)
 		this.showAbstractSuggestionsProxy = new Proxy(AbstractInputSuggest.prototype.showSuggestions, {
-			apply(showSuggestions, popover: AbstractInputSuggest<any>, args) {
+			apply(showSuggestions, popover: AbstractInputSuggest<unknown>, args) {
 				if (manager.isDisabled()) {
 					return showSuggestions.call(popover, ...args);
 				}
@@ -50,7 +46,7 @@ export default class SuggestionIconManager extends IconManager {
 				// Proxy renderSuggestion() for each instance
 				if (popover.renderSuggestion !== manager.renderAbstractSuggestionProxy) {
 					manager.renderAbstractSuggestionProxy = new Proxy(popover.renderSuggestion, {
-						apply(renderSuggestion, popover: AbstractInputSuggest<any>, args: [any, HTMLElement]) {
+						apply(renderSuggestion, popover: AbstractInputSuggest<unknown>, args: [unknown, HTMLElement]) {
 							// Call base method first to pre-populate elements
 							const returnValue = renderSuggestion.call(popover, ...args);
 							if (manager.isDisabled()) return returnValue;
@@ -94,7 +90,7 @@ export default class SuggestionIconManager extends IconManager {
 		// Catch popovers before they open
 		// @ts-expect-error (Private API)
 		this.showEditorSuggestionsProxy = new Proxy(EditorSuggest.prototype.showSuggestions, {
-			apply(showSuggestions, popover: EditorSuggest<any>, args) {
+			apply(showSuggestions, popover: EditorSuggest<unknown>, args) {
 				if (manager.isDisabled()) {
 					return showSuggestions.call(popover, ...args);
 				}
@@ -102,7 +98,7 @@ export default class SuggestionIconManager extends IconManager {
 				// Proxy renderSuggestion() for each instance
 				if (popover.renderSuggestion !== manager.renderEditorSuggestionProxy) {
 					manager.renderEditorSuggestionProxy = new Proxy(popover.renderSuggestion, {
-						apply(renderSuggestion, popover: EditorSuggest<any>, args: [any, HTMLElement]) {
+						apply(renderSuggestion, popover: EditorSuggest<unknown>, args: [unknown, HTMLElement]) {
 							// Call base method first to pre-populate elements
 							const returnValue = renderSuggestion.call(popover, ...args);
 							if (manager.isDisabled()) return returnValue;
@@ -136,9 +132,9 @@ export default class SuggestionIconManager extends IconManager {
 	/**
 	 * Determine which type of suggestion this is.
 	 */
-	private getSuggestionType(value: any): string | null {
-		if (!value || typeof value !== 'object') {
-			return UNKNOWN_SUGGESTION;
+	private getSuggestionType(value: unknown): string | null {
+		if (!ObsidianUtils.isObject(value)) {
+			return null;
 		} else if (value.type === 'file' && value.file instanceof TFile) {
 			return FILE_SUGGESTION;
 		} else if (value.type === 'alias' && value.file instanceof TFile) {
@@ -148,16 +144,17 @@ export default class SuggestionIconManager extends IconManager {
 		} else if (value.widget) {
 			return PROPERTY_SUGGESTION;
 		} else {
-			return UNKNOWN_SUGGESTION;
+			return null;
 		}
 	}
 
 	/**
 	 * Refresh a file suggestion icon.
 	 */
-	private refreshFileIcon(value: any, el: HTMLElement): void {
-		const fileId: string = value?.file.path;
-		if (!fileId) return;
+	private refreshFileIcon(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value) || !(value.file instanceof TFile)) return;
+
+		const fileId = value.file.path;
 		const file = this.plugin.getFileItem(fileId);
 		if (!file) return;
 		const rule = this.plugin.ruleManager?.checkRuling('file', fileId) ?? file;
@@ -177,16 +174,16 @@ export default class SuggestionIconManager extends IconManager {
 	/**
 	 * Refresh a property suggestion icon.
 	 */
-	private refreshPropertyIcon(value: any, el: HTMLElement): void {
-		switch (value?.type) {
+	private refreshPropertyIcon(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value)) return;
+		switch (value.type) {
 			// Property suggestions
 			case 'text': {
-				const propId = value?.text;
-				if (propId) {
-					const prop = this.plugin.getPropertyItem(propId);
-					const iconEl = el.find(':scope > .suggestion-icon > .suggestion-flair');
-					if (iconEl) this.refreshIcon(prop, iconEl);
-				}
+				if (typeof value.text !== 'string') break;
+				const propId = value.text;
+				const prop = this.plugin.getPropertyItem(propId);
+				const iconEl = el.find(':scope > .suggestion-icon > .suggestion-flair');
+				if (prop && iconEl) this.refreshIcon(prop, iconEl);
 				break;
 			}
 			// BASES: File attribute suggestions
@@ -195,12 +192,11 @@ export default class SuggestionIconManager extends IconManager {
 			case 'formula': break;
 			// BASES: Property suggestions
 			case 'note': {
-				const propId = value?.name;
-				if (propId) {
-					const prop = this.plugin.getPropertyItem(propId);
-					const iconEl = el.find(':scope > .suggestion-icon > .suggestion-flair');
-					if (iconEl) this.refreshIcon(prop, iconEl);
-				}
+				if (typeof value.name !== 'string') break;
+				const propId = value.name;
+				const prop = this.plugin.getPropertyItem(propId);
+				const iconEl = el.find(':scope > .suggestion-icon > .suggestion-flair');
+				if (prop && iconEl) this.refreshIcon(prop, iconEl);
 				break;
 			}
 		}
@@ -209,21 +205,22 @@ export default class SuggestionIconManager extends IconManager {
 	/**
 	 * Refresh a tag suggestion icon.
 	 */
-	private refreshTagIcon(value: any, el: HTMLElement): void {
-		const tagId = value?.tag;
-		if (tagId) {
-			el.addClass('mod-complex', 'iconic-item');
-			const tag = this.plugin.getTagItem(tagId);
-			const iconContainerEl = el.find(':scope > .suggestion-icon')
-				?? createDiv({ cls: 'suggestion-icon' });
-			const iconEl = iconContainerEl.find(':scope > .suggestion-flair')
-				?? iconContainerEl.createSpan({ cls: 'suggestion-flair' });
-			el.prepend(iconContainerEl);
-			if (tag) {
-				tag.iconDefault = 'lucide-tag';
-				if (!tag.icon && !tag.color) iconEl.addClass('iconic-invisible');
-				this.refreshIcon(tag, iconEl);
-			}
+	private refreshTagIcon(value: unknown, el: HTMLElement): void {
+		if (!ObsidianUtils.isObject(value)) return;
+		const tagId = value.tag;
+		if (typeof tagId !== 'string') return;
+
+		el.addClass('mod-complex', 'iconic-item');
+		const tag = this.plugin.getTagItem(tagId);
+		const iconContainerEl = el.find(':scope > .suggestion-icon')
+			?? createDiv({ cls: 'suggestion-icon' });
+		const iconEl = iconContainerEl.find(':scope > .suggestion-flair')
+			?? iconContainerEl.createSpan({ cls: 'suggestion-flair' });
+		el.prepend(iconContainerEl);
+		if (tag) {
+			tag.iconDefault = 'lucide-tag';
+			if (!tag.icon && !tag.color) iconEl.addClass('iconic-invisible');
+			this.refreshIcon(tag, iconEl);
 		}
 	}
 

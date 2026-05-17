@@ -1,5 +1,6 @@
 import { TFile } from 'obsidian';
 import IconicPlugin, { Category, Item, FileItem, ICONS, EMOJIS, STRINGS } from 'src/IconicPlugin.js';
+import ObsidianUtils from 'src/ObsidianUtils.js';
 
 const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
@@ -32,19 +33,19 @@ export default class RuleManager {
 		this.plugin = plugin;
 
 		// Fix any duplicate rule IDs
-		const fileRuleIds: string[] = [];
-		const folderRuleIds: string[] = [];
-		for (const ruleBase of this.plugin.settings.fileRules) {
-			if (!ruleBase.id || fileRuleIds.includes(ruleBase.id)) {
-				ruleBase.id = this.newRuleId('file');
+		const fileRuleIds = new Set<string>();
+		const folderRuleIds = new Set<string>();
+		for (const ruleObj of this.getRuleObjects('file')) {
+			if (!ruleObj.id || fileRuleIds.has(ruleObj.id)) {
+				ruleObj.id = this.newRuleId('file');
 			}
-			fileRuleIds.push(ruleBase.id);
+			fileRuleIds.add(ruleObj.id);
 		}
-		for (const ruleBase of this.plugin.settings.folderRules) {
-			if (!ruleBase.id || folderRuleIds.includes(ruleBase.id)) {
-				ruleBase.id = this.newRuleId('folder');
+		for (const ruleObj of this.getRuleObjects('folder')) {
+			if (!ruleObj.id || folderRuleIds.has(ruleObj.id)) {
+				ruleObj.id = this.newRuleId('folder');
 			}
-			folderRuleIds.push(ruleBase.id);
+			folderRuleIds.add(ruleObj.id);
 		}
 		void this.plugin.saveSettings();
 
@@ -80,31 +81,21 @@ export default class RuleManager {
 	 * Get array of rule definitions from a given page.
 	 */
 	getRules(page: Category): RuleItem[] {
-		switch (page) {
-			case 'file': return this.plugin.settings.fileRules.map(ruleBase => this.defineRule(page, ruleBase));
-			case 'folder': return this.plugin.settings.folderRules.map(ruleBase => this.defineRule(page, ruleBase));
-			default: return [];
-		}
+		return this.getRuleObjects(page).map(ruleObject => this.defineRule(page, ruleObject));
 	}
 
 	/**
 	 * Get rule definition from a given page.
 	 */
 	getRule(page: Category, ruleId: string): RuleItem | null {
-		let ruleBases: typeof this.plugin.settings.fileRules;
-		switch (page) {
-			case 'file': ruleBases = this.plugin.settings.fileRules; break;
-			case 'folder': ruleBases = this.plugin.settings.folderRules; break;
-			default: ruleBases = [];
-		}
-		const ruleBase = ruleBases.find(rule => rule.id === ruleId);
-		return ruleBase ? this.defineRule(page, ruleBase) : null;
+		const ruleObj = this.getRuleObjects(page).find(rule => rule.id === ruleId);
+		return ruleObj ? this.defineRule(page, ruleObj) : null;
 	}
 
 	/**
-	 * Get array of rule bases from a given page.
+	 * Get array of rule objects from a given page.
 	 */
-	private getRuleBases(page: Category): typeof this.plugin.settings.fileRules {
+	private getRuleObjects(page: Category): typeof this.plugin.settings.fileRules {
 		switch (page) {
 			default: return this.plugin.settings.fileRules;
 			case 'file': return this.plugin.settings.fileRules;
@@ -126,17 +117,27 @@ export default class RuleManager {
 	/**
 	 * Create rule definition.
 	 */
-	private defineRule(page: Category, ruleBase: any): RuleItem {
+	private defineRule(page: Category, ruleObj: typeof this.plugin.settings.fileRules[number]): RuleItem {
 		return {
-			id: ruleBase.id ?? '0',
-			name: ruleBase.name ?? '',
+			id: typeof ruleObj.id === 'string' ? ruleObj.id : '0',
+			name: typeof ruleObj.name === 'string' ? ruleObj.name : '',
 			category: 'rule',
 			iconDefault: this.getPageIcon(page),
-			icon: ruleBase.icon ?? null,
-			color: ruleBase.color ?? null,
-			match: ruleBase.match ?? 'all',
-			conditions: ruleBase.conditions ?? [],
-			enabled: ruleBase.enabled ?? false,
+			icon: typeof ruleObj.icon === 'string' ? ruleObj.icon : null,
+			color: typeof ruleObj.color === 'string' ? ruleObj.color : null,
+			match: ruleObj.match === 'any' || ruleObj.match === 'none' ? ruleObj.match : 'all',
+			conditions: ObsidianUtils.isArray(ruleObj.conditions)
+				? ruleObj.conditions.map(condition => {
+					if (!ObsidianUtils.isObject(condition)) {
+						return { source: 'name', operator: 'contains', value: '' };
+					}
+					return {
+						source: typeof condition.source === 'string' ? condition.source : '',
+						operator: typeof condition.operator === 'string' ? condition.operator : '',
+						value: typeof condition.value === 'string' ? condition.value : '',
+					}
+				}) : [],
+			enabled: typeof ruleObj.enabled === 'boolean' ? ruleObj.enabled : false,
 		}
 	}
 
@@ -144,7 +145,7 @@ export default class RuleManager {
 	 * Generate a 5-character rule ID. 916,132,832 possible values.
 	 */
 	newRuleId(page: Category): string {
-		const ids = this.getRuleBases(page).map(ruleBase => ruleBase.id);
+		const ids = this.getRuleObjects(page).map(ruleObj => ruleObj.id);
 		let id: string;
 		let collisions = 0;
 		do { // Try to generate a unique ID (up to 10 times)
@@ -180,9 +181,9 @@ export default class RuleManager {
 	 * Duplicate rule on a given page, and return true if this changes any rulings.
 	 */
 	duplicateRule(page: Category, rule: RuleItem): RuleItem {
-		const ruleBases = this.getRuleBases(page);
-		const ruleBase = ruleBases.find(ruleBase => ruleBase.id === rule.id);
-		if (!ruleBase) return this.newRule(page);
+		const ruleObjects = this.getRuleObjects(page);
+		const ruleObj = ruleObjects.find(ruleObj => ruleObj.id === rule.id);
+		if (!ruleObj) return this.newRule(page);
 
 		const duplicateRule: RuleItem = {
 			id: this.newRuleId(page),
@@ -196,8 +197,8 @@ export default class RuleManager {
 			enabled: rule.enabled,
 		};
 
-		const index = ruleBases.indexOf(ruleBase) + 1;
-		ruleBases.splice(index, 0, {
+		const index = ruleObjects.indexOf(ruleObj) + 1;
+		ruleObjects.splice(index, 0, {
 			id: duplicateRule.id,
 			name: duplicateRule.name,
 			icon: duplicateRule.icon ?? undefined,
@@ -215,13 +216,13 @@ export default class RuleManager {
 	 * Move rule within a given page, and return true if this changes any rulings.
 	 */
 	moveRule(page: Category, rule: RuleItem, toIndex: number): boolean {
-		const ruleBases = this.getRuleBases(page);
-		const ruleBase = ruleBases.find(ruleBase => ruleBase.id === rule.id);
-		if (!ruleBase) return false;
+		const ruleObjects = this.getRuleObjects(page);
+		const ruleObj = ruleObjects.find(ruleObj => ruleObj.id === rule.id);
+		if (!ruleObj) return false;
 
-		const index = ruleBases.indexOf(ruleBase);
-		ruleBases.splice(index, 1);
-		ruleBases.splice(toIndex, 0, ruleBase);
+		const index = ruleObjects.indexOf(ruleObj);
+		ruleObjects.splice(index, 1);
+		ruleObjects.splice(toIndex, 0, ruleObj);
 
 		void this.plugin.saveSettings();
 		return this.updateRulings(page);
@@ -231,33 +232,33 @@ export default class RuleManager {
 	 * Save rule to a given page, and return true if this changes any rulings.
 	 */
 	saveRule(page: Category, newRule: RuleItem): boolean {
-		const ruleBases = this.getRuleBases(page);
-		let ruleBase = ruleBases.find(rule => rule.id === newRule.id);
-		if (!ruleBase) {
-			ruleBase = { id: newRule.id };
-			ruleBases.push({ id: newRule.id });
+		const ruleObjects = this.getRuleObjects(page);
+		let ruleObj = ruleObjects.find(rule => rule.id === newRule.id);
+		if (!ruleObj) {
+			ruleObj = { id: newRule.id };
+			ruleObjects.push({ id: newRule.id });
 		}
 
-		if (newRule.name) ruleBase.name = newRule.name;
-		else delete ruleBase.name;
-		if (newRule.icon) ruleBase.icon = newRule.icon;
-		else delete ruleBase.icon;
-		if (newRule.color) ruleBase.color = newRule.color;
-		else delete ruleBase.color;
-		if (newRule.match) ruleBase.match = newRule.match;
-		else delete ruleBase.match;
+		if (newRule.name) ruleObj.name = newRule.name;
+		else delete ruleObj.name;
+		if (newRule.icon) ruleObj.icon = newRule.icon;
+		else delete ruleObj.icon;
+		if (newRule.color) ruleObj.color = newRule.color;
+		else delete ruleObj.color;
+		if (newRule.match) ruleObj.match = newRule.match;
+		else delete ruleObj.match;
 		if (newRule.conditions.length > 0) {
-			ruleBase.conditions = newRule.conditions.map(({ source, operator, value }) => {
-				const conditionBase: any = {};
-				if (source) conditionBase.source = source;
-				if (operator) conditionBase.operator = operator;
-				if (value) conditionBase.value = value;
-				return conditionBase;
+			ruleObj.conditions = newRule.conditions.map(({ source, operator, value }) => {
+				const conditionObj: Record<string, unknown> = {};
+				if (source) conditionObj.source = source;
+				if (operator) conditionObj.operator = operator;
+				if (value) conditionObj.value = value;
+				return conditionObj;
 			});
 		}
-		else delete ruleBase.conditions;
-		if (typeof newRule.enabled === 'boolean') ruleBase.enabled = newRule.enabled;
-		else delete ruleBase.enabled;
+		else delete ruleObj.conditions;
+		if (typeof newRule.enabled === 'boolean') ruleObj.enabled = newRule.enabled;
+		else delete ruleObj.enabled;
 
 		void this.plugin.saveSettings();
 		return this.updateRulings(page);
@@ -267,10 +268,10 @@ export default class RuleManager {
 	 * Delete rule from a given page, and return true if this changes any rulings.
 	 */
 	deleteRule(page: Category, ruleId: string): boolean {
-		const ruleBases = this.getRuleBases(page);
-		const index = ruleBases.findIndex(ruleBase => ruleBase.id === ruleId);
+		const ruleObjects = this.getRuleObjects(page);
+		const index = ruleObjects.findIndex(ruleObj => ruleObj.id === ruleId);
 		if (index === -1) return false;
-		ruleBases.splice(index, 1);
+		ruleObjects.splice(index, 1);
 
 		void this.plugin.saveSettings();
 		return this.updateRulings(page);

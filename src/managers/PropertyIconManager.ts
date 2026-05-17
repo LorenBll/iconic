@@ -157,13 +157,15 @@ export default class PropertyIconManager extends IconManager {
 	private onContextMenu(clickedPropId: string): void {
 		navigator.vibrate?.(100); // Not supported on iOS
 		this.plugin.menuManager?.closeAndFlush();
-		const clickedProp: PropertyItem = this.plugin.getPropertyItem(clickedPropId);
+		const clickedProp = this.plugin.getPropertyItem(clickedPropId);
+		if (!clickedProp) return;
 		const selectedProps: PropertyItem[] = [];
 
 		for (const selfEl of this.allPropsContainerEl?.findAll('.tree-item-self.is-selected') ?? []) {
 			const textEl = selfEl.find(':scope > .tree-item-inner > .tree-item-inner-text');
 			if (textEl?.textContent) {
-				selectedProps.push(this.plugin.getPropertyItem(textEl.textContent));
+				const selectedProp = this.plugin.getPropertyItem(textEl.textContent);
+				if (selectedProp) selectedProps.push(selectedProp);
 			}
 		}
 

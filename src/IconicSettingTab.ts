@@ -8,15 +8,15 @@ import UsageChecker from 'src/dialogs/UsageChecker.js';
  */
 export default class IconicSettingTab extends PluginSettingTab {
 	private readonly plugin: IconicPlugin;
-	private readonly indicators = {
-		biggerIcons: undefined as unknown,
-		clickableIcons: undefined as unknown,
-		showItemName: undefined as unknown,
-		biggerSearchResults: undefined as unknown,
-		colorPicker1: undefined as unknown,
-		colorPicker2: undefined as unknown,
-	} as Record<string, ExtraButtonComponent>;
 	public icon = 'lucide-images';
+
+	// Components
+	private biggerIconsIndicator?: ExtraButtonComponent;
+	private showItemNameIndicator?: ExtraButtonComponent;
+	private clickableIconsIndicator?: ExtraButtonComponent;
+	private biggerSearchResultsIndicator?: ExtraButtonComponent;
+	private colorPickerIndicator1?: ExtraButtonComponent;
+	private colorPickerIndicator2?: ExtraButtonComponent;
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin.app, plugin);
@@ -54,7 +54,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			.setDesc(STRINGS.settings.biggerIcons.desc)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.biggerIcons = indicator;
+				this.biggerIconsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('on', STRINGS.settings.values.on)
@@ -63,12 +63,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				.addOption('off', STRINGS.settings.values.off)
 				.setValue(this.plugin.settings.biggerIcons)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.biggerIcons, value);
+					this.refreshIndicator(this.biggerIconsIndicator, value);
 					this.plugin.settings.biggerIcons = value;
 					void this.plugin.saveSettings();
 					this.plugin.refreshBody();
 				});
-				this.refreshIndicator(this.indicators.biggerIcons, dropdown.getValue());
+				this.refreshIndicator(this.biggerIconsIndicator, dropdown.getValue());
 			})
 		);
 
@@ -84,7 +84,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.clickableIcons = indicator;
+				this.clickableIconsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('on', STRINGS.settings.values.on)
@@ -93,13 +93,13 @@ export default class IconicSettingTab extends PluginSettingTab {
 				.addOption('off', STRINGS.settings.values.off)
 				.setValue(this.plugin.settings.clickableIcons)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.clickableIcons, value);
+					this.refreshIndicator(this.clickableIconsIndicator, value);
 					this.plugin.settings.clickableIcons = value;
 					void this.plugin.saveSettings();
 					this.plugin.refreshManagers();
 					this.plugin.refreshBody();
 				});
-				this.refreshIndicator(this.indicators.clickableIcons, dropdown.getValue());
+				this.refreshIndicator(this.clickableIconsIndicator, dropdown.getValue());
 			})
 		);
 
@@ -262,7 +262,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			.setDesc(STRINGS.settings.showItemName.desc)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.showItemName = indicator;
+				this.showItemNameIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('on', STRINGS.settings.values.on)
@@ -271,11 +271,11 @@ export default class IconicSettingTab extends PluginSettingTab {
 				.addOption('off', STRINGS.settings.values.off)
 				.setValue(this.plugin.settings.showItemName)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.showItemName, value);
+					this.refreshIndicator(this.showItemNameIndicator, value);
 					this.plugin.settings.showItemName = value;
 					void this.plugin.saveSettings();
 				});
-				this.refreshIndicator(this.indicators.showItemName, dropdown.getValue());
+				this.refreshIndicator(this.showItemNameIndicator, dropdown.getValue());
 			})
 		);
 
@@ -285,7 +285,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			.setDesc(STRINGS.settings.biggerSearchResults.desc)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.biggerSearchResults = indicator;
+				this.biggerSearchResultsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('on', STRINGS.settings.values.on)
@@ -294,12 +294,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				.addOption('off', STRINGS.settings.values.off)
 				.setValue(this.plugin.settings.biggerSearchResults)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.biggerSearchResults, value);
+					this.refreshIndicator(this.biggerSearchResultsIndicator, value);
 					this.plugin.settings.biggerSearchResults = value;
 					void this.plugin.saveSettings();
 					this.plugin.refreshBody();
 				});
-				this.refreshIndicator(this.indicators.biggerSearchResults, dropdown.getValue());
+				this.refreshIndicator(this.biggerSearchResultsIndicator, dropdown.getValue());
 			})
 		);
 
@@ -327,18 +327,18 @@ export default class IconicSettingTab extends PluginSettingTab {
 			)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.colorPicker1 = indicator;
+				this.colorPickerIndicator1 = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('list', STRINGS.settings.values.list)
 				.addOption('rgb', STRINGS.settings.values.rgb)
 				.setValue(this.plugin.settings.colorPicker1)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.colorPicker1, value);
+					this.refreshIndicator(this.colorPickerIndicator1, value);
 					this.plugin.settings.colorPicker1 = value;
 					void this.plugin.saveSettings();
 				})
-				this.refreshIndicator(this.indicators.colorPicker1, dropdown.getValue());
+				this.refreshIndicator(this.colorPickerIndicator1, dropdown.getValue());
 			})
 		);
 
@@ -351,18 +351,18 @@ export default class IconicSettingTab extends PluginSettingTab {
 			)
 			.addExtraButton(indicator => {
 				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.indicators.colorPicker2 = indicator;
+				this.colorPickerIndicator2 = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
 				.addOption('list', STRINGS.settings.values.list)
 				.addOption('rgb', STRINGS.settings.values.rgb)
 				.setValue(this.plugin.settings.colorPicker2)
 				.onChange(value => {
-					this.refreshIndicator(this.indicators.colorPicker2, value);
+					this.refreshIndicator(this.colorPickerIndicator2, value);
 					this.plugin.settings.colorPicker2 = value;
 					void this.plugin.saveSettings();
 				});
-				this.refreshIndicator(this.indicators.colorPicker2, dropdown.getValue());
+				this.refreshIndicator(this.colorPickerIndicator2, dropdown.getValue());
 			})
 		);
 

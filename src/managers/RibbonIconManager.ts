@@ -80,8 +80,10 @@ export default class RibbonIconManager extends IconManager {
 			}
 			if (quickItemId) {
 				const quickItem = this.plugin.getRibbonItem(quickItemId);
-				if (this.plugin.settings.uncolorQuick) quickItem.color = null;
-				this.refreshIcon(quickItem, ribbonButtonEl);
+				if (quickItem) {
+					if (this.plugin.settings.uncolorQuick) quickItem.color = null;
+					this.refreshIcon(quickItem, ribbonButtonEl);
+				}
 			} else {
 				this.setEventListener(ribbonButtonEl, 'click', ribbonButtonListener);
 			}
@@ -126,14 +128,16 @@ export default class RibbonIconManager extends IconManager {
 			const quickItemId = this.app.vault.getConfig('mobileQuickRibbonItem');
 			if (quickItemId) {
 				const quickItem = this.plugin.getRibbonItem(quickItemId);
-				const quickIconEl = containerEl.find('.setting-item-control > .extra-setting-button');
-				this.refreshIcon(quickItem, quickIconEl, () => {
-					IconPicker.openSingle(this.plugin, quickItem, (newIcon, newColor) => {
-						this.plugin.saveRibbonIcon(quickItem, newIcon, newColor);
-						this.plugin.refreshManagers('ribbon');
-						this.refreshConfigIcons(containerEl);
+				if (quickItem) {
+					const quickIconEl = containerEl.find('.setting-item-control > .extra-setting-button');
+					this.refreshIcon(quickItem, quickIconEl, () => {
+						IconPicker.openSingle(this.plugin, quickItem, (newIcon, newColor) => {
+							this.plugin.saveRibbonIcon(quickItem, newIcon, newColor);
+							this.plugin.refreshManagers('ribbon');
+							this.refreshConfigIcons(containerEl);
+						});
 					});
-				});
+				}
 			}
 		}
 
@@ -176,6 +180,7 @@ export default class RibbonIconManager extends IconManager {
 		navigator.vibrate?.(100); // Not supported on iOS
 		this.plugin.menuManager?.closeAndFlush();
 		const ribbonItem = this.plugin.getRibbonItem(ribbonItemId);
+		if (!ribbonItem) return;
 
 		// Menu compatibility with Periodic Notes plugin
 		let menu: Menu | MenuManager | undefined;

@@ -1,5 +1,6 @@
 import { Command, Notice, Platform, Plugin, TAbstractFile, TFile, TFolder, View, WorkspaceFloating, WorkspaceLeaf, WorkspaceRoot, getIconIds, getLanguage, normalizePath } from 'obsidian';
 import IconicSettingTab from 'src/IconicSettingTab.js';
+import ObsidianUtils, { ObsidianBookmark, ObsidianTag, ObsidianProperty, ObsidianRibbonItem } from 'src/ObsidianUtils.js';
 import EMOJIS from 'src/Emojis.js';
 import STRINGS from 'src/Strings.js';
 import MenuManager from 'src/managers/MenuManager.js';
@@ -595,7 +596,7 @@ export default class IconicPlugin extends Plugin {
 	/**
 	 * @override
 	 */
-	async onExternalSettingsChange(): Promise<any> {
+	async onExternalSettingsChange(): Promise<void> {
 		await this.loadSettings();
 		this.refreshManagers();
 		this.refreshBody();
@@ -953,163 +954,158 @@ export default class IconicPlugin extends Plugin {
 	 * Get array of bookmark definitions.
 	 */
 	getBookmarkItems(unloading?: boolean): BookmarkItem[] {
-		// @ts-expect-error (Private API)
-		const bmarkBases: any[] = this.app.internalPlugins?.plugins?.bookmarks?.instance?.items ?? [];
-		return bmarkBases.map(bmarkBase => this.defineBookmarkItem(bmarkBase, unloading));
+		const oBmarks = ObsidianUtils.getObsidianBookmarks(this.app);
+		return oBmarks.map(oBmark => this.defineBookmarkItem(oBmark, unloading));
 	}
 
 	/**
 	 * Get bookmark definition.
 	 */
-	getBookmarkItem(bmarkId: string, bmarkCategory: Category, unloading?: boolean): BookmarkItem {
-		// @ts-expect-error (Private API)
-		const bmarkBases = this.flattenBookmarks(this.app.internalPlugins?.plugins?.bookmarks?.instance?.items ?? []);
-		const bmarkBase = bmarkBases.find(bmarkBase => {
-			switch (bmarkCategory) {
-				case 'file': // Fallthrough
-				case 'folder': return bmarkBase.path + (bmarkBase.subpath ?? '') === bmarkId;
-				default: return bmarkBase.ctime === bmarkId;
-			}
-		}) ?? {};
-		return this.defineBookmarkItem(bmarkBase, unloading);
+	getBookmarkItem(bmarkId: string, bmarkCategory: Category, unloading?: boolean): BookmarkItem | null {
+		const oBmark = ObsidianUtils.getObsidianBookmark(this.app, bmarkCategory, bmarkId);
+		return oBmark ? this.defineBookmarkItem(oBmark, unloading) : null;
 	}
 
 	/**
 	 * Create bookmark definition.
 	 */
-	private defineBookmarkItem(bmarkBase: any, unloading?: boolean): BookmarkItem {
-		const { path, filename, basename, extension } = this.splitFilePath(bmarkBase.path);
-		const subpath = bmarkBase.subpath ?? '';
-		let id, name, bmarkIcon, iconDefault = null;
+	private defineBookmarkItem(oBmark: ObsidianBookmark, unloading?: boolean): BookmarkItem {
+		let id = '';
+		let name = '';
+		let category: Category = 'file';
+		let icon: string | null = null;
+		let color: string | null = null;
+		let iconDefault: string | null = null;
 
-		switch (bmarkBase.type) {
+		switch (oBmark.type) {
 			case 'file': {
+				const { path, filename, basename, extension } = this.splitFilePath(oBmark.path ?? '');
+				const subpath = oBmark.subpath ?? '';
 				id = path + subpath;
 				name = (extension === 'md' ? basename : filename) + subpath;
-				if (extension === 'canvas') {
-					iconDefault = 'lucide-layout-dashboard';
-				} else if (subpath.startsWith('#^')) {
-					iconDefault = 'lucide-toy-brick';
-				} else if (subpath.startsWith('#')) {
-					iconDefault = 'lucide-heading';
-				} else {
-					iconDefault = 'lucide-file';
-					if (!unloading) {
-						if (extension === 'pdf') {
-							iconDefault = 'lucide-file-text';
-						} else if (IMAGE_EXTENSIONS.includes(extension)) {
-							iconDefault = 'lucide-image';
-						} else if (AUDIO_EXTENSIONS.includes(extension)) {
-							iconDefault = 'lucide-file-audio';
-						}
-					}
-				}
-				bmarkIcon = this.settings.fileIcons[id] ?? {};
+				category = 'file';
+				icon = this.settings.fileIcons[id]?.icon ?? null;
+				color = this.settings.fileIcons[id]?.color ?? null;
+				iconDefault = this.getDefaultBookmarkIcon(extension, subpath, unloading);
 				break;
 			}
 			case 'folder': {
-				id = path;
-				name = basename;
-				bmarkIcon = this.settings.fileIcons[id] ?? {};
+				category = 'folder';
+				id = oBmark.path ?? '';
+				name = oBmark.title ?? '';
+				icon = this.settings.fileIcons[id]?.icon ?? null;
+				color = this.settings.fileIcons[id]?.color ?? null;
 				iconDefault = 'lucide-folder';
 				break;
 			}
 			case 'group': {
-				id = bmarkBase.ctime;
-				name = bmarkBase.title;
-				bmarkIcon = this.settings.bookmarkIcons[id] ?? {};
-				if (bmarkIcon.color && !this.settings.minimalFolderIcons || this.settings.showAllFolderIcons) {
+				category = 'group';
+				id = oBmark.ctime.toString();
+				name = oBmark.title ?? '';
+				icon = this.settings.bookmarkIcons[id]?.icon ?? null;
+				color = this.settings.bookmarkIcons[id]?.color ?? null;
+				if (color && !this.settings.minimalFolderIcons || this.settings.showAllFolderIcons) {
 					iconDefault = 'lucide-folder-closed';
 				}
 				break;
 			}
 			case 'search': {
-				id = bmarkBase.ctime;
-				name = bmarkBase.query;
-				bmarkIcon = this.settings.bookmarkIcons[id] ?? {};
+				category = 'search';
+				id = oBmark.ctime.toString();
+				name = oBmark.query ?? '';
+				icon = this.settings.bookmarkIcons[id]?.icon ?? null;
+				color = this.settings.bookmarkIcons[id]?.color ?? null;
 				iconDefault = 'lucide-search';
 				break;
 			}
 			case 'graph': {
-				id = bmarkBase.ctime;
-				name = bmarkBase.title;
-				bmarkIcon = this.settings.bookmarkIcons[id] ?? {};
+				category = 'graph';
+				id = oBmark.ctime.toString();
+				name = oBmark.title ?? '';
+				icon = this.settings.bookmarkIcons[id]?.icon ?? null;
+				color = this.settings.bookmarkIcons[id]?.color ?? null;
 				iconDefault = 'lucide-git-fork';
 				break;
 			}
 			case 'url': {
-				id = bmarkBase.ctime;
-				name = bmarkBase.url;
-				bmarkIcon = this.settings.bookmarkIcons[id] ?? {};
+				id = oBmark.ctime.toString();
+				name = oBmark.url ?? '';
+				icon = this.settings.bookmarkIcons[id]?.icon ?? null;
+				color = this.settings.bookmarkIcons[id]?.color ?? null;
 				iconDefault = 'lucide-globe-2';
-				break;
 			}
 		}
+
 		return {
-			id: id,
-			name: name,
-			category: bmarkBase.type ?? 'file',
-			iconDefault: iconDefault,
-			icon: unloading ? null : bmarkIcon?.icon ?? null,
-			color: unloading ? null : bmarkIcon?.color ?? null,
-			items: bmarkBase.items?.map((bmark: any) => this.defineBookmarkItem(bmark, unloading)) ?? null,
-		}
+			id,
+			name,
+			category,
+			iconDefault,
+			icon: unloading ? null : icon,
+			color: unloading ? null : color,
+			items: oBmark.items?.map(oBmark => this.defineBookmarkItem(oBmark, unloading)) ?? null,
+		};
 	}
 
 	/**
-	 * Flatten an array of bookmark bases to include all children.
+	 * Get the default bookmark icon for a given file extension and file subpath.
 	 */
-	private flattenBookmarks(bmarkBases: any[]): any[] {
-		const flatArray = [];
-		for (const bmarkBase of bmarkBases) {
-			flatArray.push(bmarkBase);
-			if (bmarkBase.items) flatArray.push(...this.flattenBookmarks(bmarkBase.items));
+	private getDefaultBookmarkIcon(extension: string, subpath: string, unloading?: boolean): string {
+		// Vanilla bookmark icons
+		if (extension === 'canvas') {
+			return 'lucide-layout-dashboard';
+		} else if (subpath.startsWith('#^')) {
+			return 'lucide-toy-brick';
+		} else if (subpath.startsWith('#')) {
+			return 'lucide-heading';
+		} else if (unloading) {
+			return 'lucide-file';
 		}
-		return flatArray;
+		// Derived from the vanilla tab icons for these filetypes
+		if (extension === 'pdf') {
+			return 'lucide-file-text';
+		} else if (IMAGE_EXTENSIONS.includes(extension)) {
+			return 'lucide-image';
+		} else if (AUDIO_EXTENSIONS.includes(extension)) {
+			return 'lucide-file-audio';
+		}
+		// Generic icon
+		return 'lucide-file';
 	}
 
 	/**
 	 * Get array of tag definitions.
 	 */
 	getTagItems(unloading?: boolean): TagItem[] {
-		// @ts-expect-error (Private API)
-		const tagHashes: string[] = Object.keys(this.app.metadataCache.getTags()) ?? [];
-		const tagBases = tagHashes.map(tagHash => {
-			return {
-				id: tagHash.replace('#', ''),
-				name: tagHash,
-			}
-		});
-		return tagBases.map(tagBase => this.defineTagItem(tagBase, unloading));
+		const oTags = ObsidianUtils.getObsidianTags(this.app);
+		if (!oTags) return [];
+		return oTags?.map(oTag => this.defineTagItem(oTag, unloading));
 	}
 
 	/**
 	 * Get tag definition.
 	 */
 	getTagItem(tagId: string, unloading?: boolean): TagItem | null {
-		const tagHash = '#' + tagId;
-		// @ts-expect-error (Private API)
-		const tagHashes: string[] = Object.keys(this.app.metadataCache.getTags()) ?? [];
-		return tagHashes.includes(tagHash)
-			? this.defineTagItem({
-				id: tagId,
-				name: tagHash,
-			}, unloading) : null;
+		const oTag = ObsidianUtils.getObsidianTag(this.app, tagId);
+		if (!oTag) return null;
+		return this.defineTagItem(oTag, unloading);
 	}
 
 	/**
 	 * Create tag definition.
 	 */
-	private defineTagItem(tagBase: any, unloading?: boolean): TagItem {
-		const tagIcon = this.settings.tagIcons[tagBase.id] ?? {};
+	private defineTagItem(oTag: ObsidianTag, unloading?: boolean): TagItem {
+		const [hashtag] = oTag;
+		const tagId = hashtag.replace('#', '');
+		const tagIcon = this.settings.tagIcons[tagId];
 
 		return {
-			id: tagBase.id,
-			name: tagBase.name,
+			id: tagId,
+			name: hashtag,
 			category: 'tag',
 			iconDefault: null,
-			icon: unloading ? null : tagIcon.icon ?? null,
-			color: unloading ? null : tagIcon.color ?? null,
+			icon: unloading ? null : tagIcon?.icon ?? null,
+			color: unloading ? null : tagIcon?.color ?? null,
 		};
 	}
 
@@ -1117,76 +1113,71 @@ export default class IconicPlugin extends Plugin {
 	 * Get array of property definitions.
 	 */
 	getPropertyItems(unloading?: boolean): PropertyItem[] {
-		// @ts-expect-error (Private API)
-		const propBases: any[] = Object.values(this.app.metadataTypeManager?.properties) ?? [];
-		return propBases.map(propBase => this.definePropertyItem(propBase, unloading));
+		const oProps = ObsidianUtils.getObsidianProperties(this.app);
+		return oProps.map(oProp => this.definePropertyItem(oProp, unloading));
 	}
 
 	/**
 	 * Get property definition.
-	 * @param propId Case-insensitive
+	 * @param propId Case-insensitive property ID
 	 */
-	getPropertyItem(propId: string, unloading?: boolean): PropertyItem {
-		// @ts-expect-error (Private API)
-		const propBases: any[] = Object.values(this.app.metadataTypeManager?.properties) ?? [];
-		const propBase = propBases.find(propBase => propBase.name.toLowerCase() === propId.toLowerCase()) ?? {};
-		return this.definePropertyItem(propBase, unloading);
+	getPropertyItem(propId: string, unloading?: boolean): PropertyItem | null {
+		const oProp = ObsidianUtils.getObsidianProperty(this.app, propId);
+		if (!oProp) return null;
+		return this.definePropertyItem(oProp, unloading);
 	}
 
 	/**
 	 * Create property definition.
 	 */
-	private definePropertyItem(propBase: any, unloading?: boolean): PropertyItem {
-		const propIcon = this.settings.propertyIcons[propBase.name] ?? {};
-		// @ts-expect-error (Private API)
-		const widget = this.app.metadataTypeManager?.getWidget?.(propBase.widget ?? '');
-		const iconDefault = widget?.icon ?? 'lucide-file-question';
-
+	private definePropertyItem(oProp: ObsidianProperty, unloading?: boolean): PropertyItem {
+		const { name, widget } = oProp[1];
+		const propIcon = this.settings.propertyIcons[name];
+		const iconDefault = ObsidianUtils.getDefaultPropertyIcon(this.app, widget);
 		return {
-			id: propBase.name,
-			name: propBase.name,
+			id: name,
+			name: name,
 			category: 'property',
 			iconDefault: iconDefault,
-			icon: unloading ? null : propIcon.icon ?? null,
-			color: unloading ? null : propIcon.color ?? null,
-			type: propBase.widget ?? null,
-		}
+			icon: unloading ? null : propIcon?.icon ?? null,
+			color: unloading ? null : propIcon?.color ?? null,
+			type: widget,
+		};
 	}
 
 	/**
-	 * Get array of ribbon command definitions.
+	 * Get array of ribbon item definitions.
 	 */
 	getRibbonItems(unloading?: boolean): RibbonItem[] {
-		// @ts-expect-error (Private API)
-		const itemBases: any[] = this.app.workspace.leftRibbon.items ?? [];
-		return itemBases.map(item => this.defineRibbonItem(item, unloading));
+		const oRibbonItems = ObsidianUtils.getObsidianRibbonItems(this.app);
+		return oRibbonItems.map(oRibbonItem => this.defineRibbonItem(oRibbonItem, unloading));
 	}
 
 	/**
-	 * Get ribbon command definition.
+	 * Get ribbon item definition.
 	 */
-	getRibbonItem(itemId: string, unloading?: boolean): RibbonItem {
-		// @ts-expect-error (Private API)
-		const itemBase: any = this.app.workspace.leftRibbon.items
-			?.find((itemBase: any) => itemBase?.id === itemId) ?? {};
-		return this.defineRibbonItem(itemBase, unloading);
+	getRibbonItem(itemId: string, unloading?: boolean): RibbonItem | null {
+		const oRibbonItem = ObsidianUtils.getObsidianRibbonItem(this.app, itemId);
+		if (!oRibbonItem) return null;
+		return this.defineRibbonItem(oRibbonItem, unloading);
 	}
 
 	/**
-	 * Create ribbon command definition.
+	 * Create ribbon item definition.
 	 */
-	private defineRibbonItem(itemBase: any, unloading?: boolean): RibbonItem {
-		const itemIcon = this.settings.ribbonIcons[itemBase.id] ?? {};
+	private defineRibbonItem(oRibbonItem: ObsidianRibbonItem, unloading?: boolean): RibbonItem {
+		const ribbonIcon = this.settings.ribbonIcons[oRibbonItem.id];
+
 		return {
-			id: itemBase.id,
-			name: itemBase.title ?? null,
+			id: oRibbonItem.id,
+			name: oRibbonItem.title ,
 			category: 'ribbon',
-			iconDefault: itemBase.icon ?? null,
-			icon: unloading ? null : itemIcon.icon ?? null,
-			color: unloading ? null : itemIcon.color ?? null,
-			isHidden: itemBase.hidden ?? false,
-			iconEl: itemBase.buttonEl ?? null,
-		}
+			iconDefault: oRibbonItem.icon ,
+			icon: unloading ? null : ribbonIcon?.icon ?? null,
+			color: unloading ? null : ribbonIcon?.color ?? null,
+			isHidden: oRibbonItem.hidden,
+			iconEl: oRibbonItem.buttonEl,
+		};
 	}
 
 	/**
@@ -1326,7 +1317,7 @@ export default class IconicPlugin extends Plugin {
 	/**
 	 * Update icon in a given settings object.
 	 */
-	private updateIconSetting(settings: any, itemId: string, icon: string | null, color: string | null): void {
+	private updateIconSetting(settings: Record<string, Partial<{ icon?: string, color?: string }>>, itemId: string, icon: string | null, color: string | null): void {
 		if (icon || color) {
 			if (!settings[itemId]) settings[itemId] = {};
 

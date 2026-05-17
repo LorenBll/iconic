@@ -191,12 +191,14 @@ export default class BookmarkIconManager extends IconManager {
 	 */
 	private onContextMenu(clickedId: string, clickedCategory: Category): void {
 		this.plugin.menuManager?.closeAndFlush();
-		const clickedBmark: BookmarkItem = this.plugin.getBookmarkItem(clickedId, clickedCategory);
+		const clickedBmark = this.plugin.getBookmarkItem(clickedId, clickedCategory);
+		if (!clickedBmark) return;
 		const selectedBmarks: BookmarkItem[] = [];
 
 		for (const [selectableEl, bmark] of this.selectionLookup) {
 			if (selectableEl.hasClass('is-selected')) {
-				selectedBmarks.push(this.plugin.getBookmarkItem(bmark.id, bmark.category));
+				const selectedBmark = this.plugin.getBookmarkItem(bmark.id, bmark.category);
+				if (selectedBmark) selectedBmarks.push(selectedBmark);
 			}
 		}
 

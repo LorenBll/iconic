@@ -758,7 +758,7 @@ export default class RuleEditor extends Modal {
 		if (setting.condition.source.startsWith('property:')) {
 			const propId = setting.condition.source.replace('property:', '');
 			const prop = this.plugin.getPropertyItem(propId);
-			switch (prop.type) {
+			switch (prop?.type) {
 				default: operators = TEXT_OPERATORS; break;
 				case 'multitext': operators = LIST_OPERATORS; break;
 				case 'number': operators = NUMBER_OPERATORS; break;

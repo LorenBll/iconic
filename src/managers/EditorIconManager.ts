@@ -459,6 +459,7 @@ export default class EditorIconManager extends IconManager {
 		navigator.vibrate?.(100); // Not supported on iOS
 		this.plugin.menuManager?.closeAndFlush();
 		const prop = this.plugin.getPropertyItem(propId);
+		if (!prop) return;
 
 		// Change icon
 		this.plugin.menuManager?.addItemAfter(['action.changeType', 'action'], item => item
