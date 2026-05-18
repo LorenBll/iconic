@@ -532,7 +532,5 @@ export default class EditorIconManager extends IconManager {
 	 */
 	unload(): void {
 		this.refreshIcons(true);
-		this.stopMutationObservers();
-		super.unload();
 	}
 }

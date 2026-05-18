@@ -8,11 +8,11 @@ import ColorUtils from 'src/ColorUtils.js';
 export default abstract class IconManager {
 	protected readonly app: App;
 	protected readonly plugin: IconicPlugin;
-	private readonly eventListeners = new Map<string, Map<HTMLElement, {
-		listener: (this: HTMLElement, event: any) => any,
-		options?: boolean | AddEventListenerOptions,
+	private readonly eventListeners = new WeakMap<HTMLElement, Map<string, {
+		listener: EventListener,
+		options?: boolean | AddEventListenerOptions
 	}>>();
-	private readonly mutationObservers = new Map<HTMLElement, MutationObserver>();
+	private readonly mutationObservers = new WeakMap<HTMLElement, MutationObserver>();
 
 	constructor(plugin: IconicPlugin) {
 		this.app = plugin.app;
@@ -85,17 +85,17 @@ export default abstract class IconManager {
 	 * Set an event listener which will be removed when plugin unloads.
 	 * Replaces any listener (of the same element & type) set by this {@link IconManager}.
 	 */
-	protected setEventListener<K extends keyof HTMLElementEventMap>(element: HTMLElement, type: K, listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void {
-		if (!this.eventListeners.has(type)) {
-			this.eventListeners.set(type, new Map());
+	protected setEventListener<K extends keyof HTMLElementEventMap>(element: HTMLElement, type: K, listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void {
+		if (!this.eventListeners.has(element)) {
+			this.eventListeners.set(element, new Map());
 		}
-		const map = this.eventListeners.get(type)!;
-		if (map.has(element)) {
-			const { listener, options } = map.get(element)!;
+		const listenerMap = this.eventListeners.get(element)!;
+		if (listenerMap.has(type)) {
+			const { listener, options } = listenerMap.get(type)!;
 			element.removeEventListener(type, listener, options);
 		}
-		this.plugin.registerDomEvent(element, type, listener, options);
-		map.set(element, { listener, options });
+		element.addEventListener(type, listener, options);
+		listenerMap.set(type, { listener: listener as EventListener, options });
 	}
 
 	/**
@@ -103,23 +103,11 @@ export default abstract class IconManager {
 	 */
 	protected stopEventListener(element: HTMLElement | null, type: keyof HTMLElementEventMap): void {
 		if (!element) return;
-		const listenerMap = this.eventListeners.get(type);
-		if (listenerMap?.has(element)) {
-			const { listener, options } = listenerMap.get(element)!;
+		const listenerMap = this.eventListeners.get(element);
+		if (listenerMap?.has(type)) {
+			const { listener, options } = listenerMap.get(type)!;
 			element.removeEventListener(type, listener, options);
-			listenerMap.delete(element);
-		}
-	}
-
-	/**
-	 * Stop all event listeners set by this {@link IconManager}.
-	 */
-	protected stopEventListeners(): void {
-		for (const [type, listenerMap] of this.eventListeners) {
-			for (const [element, { listener, options }] of listenerMap) {
-				element.removeEventListener(type, listener, options);
-				listenerMap.delete(element);
-			}
+			listenerMap.delete(type);
 		}
 	}
 
@@ -158,23 +146,5 @@ export default abstract class IconManager {
 		if (!element) return;
 		this.mutationObservers.get(element)?.disconnect();
 		this.mutationObservers.delete(element);
-	}
-
-	/**
-	 * Stop all mutation observers set by this {@link IconManager}.
-	 */
-	protected stopMutationObservers(): void {
-		for (const [element, observer] of this.mutationObservers) {
-			observer.disconnect();
-			this.mutationObservers.delete(element);
-		}
-	}
-
-	/**
-	 * Revert all DOM changes when plugin unloads.
-	 */
-	unload(): void {
-		this.stopEventListeners();
-		this.stopMutationObservers();
 	}
 }

@@ -285,6 +285,5 @@ export default class AppIconManager extends IconManager {
 	 */
 	unload(): void {
 		this.refreshIcons(true);
-		super.unload();
 	}
 }

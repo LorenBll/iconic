@@ -230,6 +230,5 @@ export default class PropertyIconManager extends IconManager {
 	 */
 	unload(): void {
 		this.refreshIcons(true);
-		super.unload();
 	}
 }

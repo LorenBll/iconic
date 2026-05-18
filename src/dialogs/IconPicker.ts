@@ -46,22 +46,8 @@ class IconPickerManager extends IconManager {
 	/**
 	 * @override
 	 */
-	stopEventListeners(): void {
-		super.stopEventListeners();
-	}
-
-	/**
-	 * @override
-	 */
 	setMutationObserver(element: HTMLElement | null, options: MutationObserverInit, callback: (mutation: MutationRecord) => void): void {
 		super.setMutationObserver(element, options, callback);
-	}
-
-	/**
-	 * @override
-	 */
-	stopMutationObservers(): void {
-		super.stopMutationObservers();
 	}
 }
 
@@ -791,8 +777,6 @@ export default class IconPicker extends Modal {
 	 */
 	onClose(): void {
 		this.contentEl.empty();
-		this.iconManager.stopEventListeners();
-		this.iconManager.stopMutationObservers();
 		void this.plugin.saveSettings(); // Save any changes to dialogState
 	}
 }

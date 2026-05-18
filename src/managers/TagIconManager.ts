@@ -145,6 +145,5 @@ export default class TagIconManager extends IconManager {
 	 */
 	unload(): void {
 		this.refreshIcons(true);
-		super.unload();
 	}
 }

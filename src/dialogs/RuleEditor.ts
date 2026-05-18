@@ -446,22 +446,8 @@ class RuleEditorManager extends IconManager {
 	/**
 	 * @override
 	 */
-	stopEventListeners(): void {
-		super.stopEventListeners();
-	}
-
-	/**
-	 * @override
-	 */
 	setMutationObserver(element: HTMLElement | null, options: MutationObserverInit, callback: (mutation: MutationRecord) => void): void {
 		super.setMutationObserver(element, options, callback);
-	}
-
-	/**
-	 * @override
-	 */
-	stopMutationObservers(): void {
-		super.stopMutationObservers();
 	}
 }
 
@@ -1078,8 +1064,6 @@ export default class RuleEditor extends Modal {
 	 */
 	onClose(): void {
 		this.contentEl.empty();
-		this.iconManager.stopEventListeners();
-		this.iconManager.stopMutationObservers();
 		// Clean up any drag ghosts left hanging when dialog is closed
 		for (const ghostEl of this.modalEl.doc.body.findAll(':scope > .iconic-condition-dragger')) {
 			ghostEl.remove();

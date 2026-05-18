@@ -290,7 +290,6 @@ export default class SuggestionDialogIconManager extends IconManager {
 	 * @override
 	 */
 	unload(): void {
-		super.unload();
 		if (SuggestModal.prototype.onOpen === this.onOpenProxy) {
 			SuggestModal.prototype.onOpen = this.onOpenOriginal;
 		}

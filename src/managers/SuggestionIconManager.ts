@@ -235,8 +235,6 @@ export default class SuggestionIconManager extends IconManager {
 	 * @override
 	 */
 	unload(): void {
-		super.unload();
-
 		// @ts-expect-error (Private API)
 		if (AbstractInputSuggest.prototype.showSuggestions === this.showAbstractSuggestionsProxy) {
 			// @ts-expect-error (Private API)
