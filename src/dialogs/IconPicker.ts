@@ -338,7 +338,11 @@ export default class IconPicker extends Modal {
 			}
 		});
 		this.iconManager.setEventListener(this.colorPickerEl, 'wheel', event => {
-			event.deltaY + event.deltaX < 0 ? this.previousColor() : this.nextColor();
+			if (event.deltaY + event.deltaX < 0) {
+				this.previousColor();
+			} else {
+				this.nextColor();
+			}
 		}, { passive: true });
 		this.updateColorPicker();
 
