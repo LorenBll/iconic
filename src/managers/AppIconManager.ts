@@ -217,7 +217,7 @@ export default class AppIconManager extends IconManager {
 				this.maximizeEl.removeClass('iconic-icon');
 				const svgEl = this.maximizeEl.createSvg('svg', SVG_INFO);
 				if (isMaximized) {
-					svgEl.style.fill = 'none';
+					svgEl.setCssProps({ fill: 'none' });
 					const pathEl1 = svgEl.createSvg('path', UNMAXIMIZE_PATH_1);
 					const pathEl2 = svgEl.createSvg('path', UNMAXIMIZE_PATH_2);
 					if (item.color) {

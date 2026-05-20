@@ -226,7 +226,7 @@ export default class RulePicker extends Modal {
 			// Display drop zone effect
 			settingEl.addClass('drag-ghost-hidden');
 			// Hack to hide the browser-native drag ghost
-			settingEl.style.opacity = '0%';
+			settingEl.setCssProps({ opacity: '0%' });
 			activeWindow.requestAnimationFrame(() => settingEl.style.removeProperty('opacity'));
 		})
 		.onDrag((x, y) => {

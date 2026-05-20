@@ -948,7 +948,7 @@ export default class RuleEditor extends Modal {
 		settingEl.addClass('drag-ghost-hidden');
 
 		// Hack to hide the browser-native drag ghost
-		settingEl.style.opacity = '0%';
+		settingEl.setCssProps({ opacity: '0%' });
 		settingEl.win.requestAnimationFrame(() => settingEl.style.removeProperty('opacity'));
 	}
 
