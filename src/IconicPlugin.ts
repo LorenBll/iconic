@@ -718,7 +718,8 @@ export default class IconicPlugin extends Plugin {
 	 */
 	isPluginEnabled(pluginId: string): boolean {
 		// @ts-expect-error (Private API)
-		return this.app.plugins?.plugins?.hasOwnProperty(pluginId) === true;
+		const plugins: unknown = this.app.plugins?.plugins;
+		return ObsidianUtils.isObject(plugins) ? pluginId in plugins : false;
 	}
 
 	/**
