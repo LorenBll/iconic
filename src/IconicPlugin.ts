@@ -1241,9 +1241,11 @@ export default class IconicPlugin extends Plugin {
 				if (icon !== bmarkBase?.icon) triggers.add('icon');
 				if (color !== bmarkBase?.color) triggers.add('color');
 				this.updateIconSetting(this.settings.fileIcons, bmark.id, icon, color);
+				break;
 			}
 			default: {
 				this.updateIconSetting(this.settings.bookmarkIcons, bmark.id, icon, color);
+				break;
 			}
 		}
 		void this.saveSettings();
@@ -1267,9 +1269,11 @@ export default class IconicPlugin extends Plugin {
 					if (icon !== bmarkBase?.icon) triggers.add('icon');
 					if (color !== bmarkBase?.color) triggers.add('color');
 					this.updateIconSetting(this.settings.fileIcons, bmark.id, bmark.icon, bmark.color);
+					break;
 				}
 				default: {
 					this.updateIconSetting(this.settings.bookmarkIcons, bmark.id, bmark.icon, bmark.color);
+					break;
 				}
 			}
 		}

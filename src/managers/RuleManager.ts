@@ -511,18 +511,20 @@ export default class RuleManager {
 	 */
 	triggerRulings(page: Category, ...triggers: RuleTrigger[]): boolean {
 		switch (page) {
-			case 'file': for (const trigger of triggers) {
-				if (this.fileTriggers.has(trigger)) {
-					return this.updateRulings(page);
+			case 'file': {
+				for (const trigger of triggers) {
+					if (this.fileTriggers.has(trigger)) return this.updateRulings(page);
 				}
+				break;
 			}
-			case 'folder': for (const trigger of triggers) {
-				if (this.folderTriggers.has(trigger)) {
-					return this.updateRulings(page);
+			case 'folder': {
+				for (const trigger of triggers) {
+					if (this.folderTriggers.has(trigger)) return this.updateRulings(page);
 				}
+				break;
 			}
-			default: return false;
 		}
+		return false;
 	}
 
 	/**
