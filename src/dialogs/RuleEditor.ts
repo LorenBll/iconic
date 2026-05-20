@@ -754,6 +754,7 @@ export default class RuleEditor extends Modal {
 				case 'aliases': operators = LIST_OPERATORS; break;
 				case 'tags': operators = LIST_OPERATORS; break;
 			}
+			operators.push(...PROPERTY_OPERATORS);
 		} else {
 			operators = SOURCE_OPERATORS[setting.condition.source] ?? [];
 		}
