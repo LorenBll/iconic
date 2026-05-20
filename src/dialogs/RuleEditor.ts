@@ -1019,7 +1019,7 @@ export default class RuleEditor extends Modal {
 	 * Update number displayed on the matches button.
 	 */
 	private async updateMatchesButton(): Promise<void> {
-		if (!this.matchesButton) return;
+		if (!(this.matchesButton instanceof ButtonComponent)) return;
 
 		// Show a loading spinner if check takes longer than 100ms
 		const timeoutId = this.modalEl.win.setTimeout(() => {
