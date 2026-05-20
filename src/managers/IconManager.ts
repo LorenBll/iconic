@@ -22,7 +22,7 @@ export default abstract class IconManager {
 	/**
 	 * Refresh all icons controlled by this icon manager. Should be overridden.
 	 */
-	refreshIcons(unloading?: boolean): void {
+	refreshIcons(): void {
 		return;
 	}
 

@@ -1350,7 +1350,7 @@ export default class IconicPlugin extends Plugin {
 			// Try to read `data.json`
 			if (await adapter.exists(dataPath)) {
 				const dataJson = await adapter.read(dataPath);
-				try { dataObject = JSON.parse(dataJson) } catch (e) { /* Ignore */ }
+				try { dataObject = JSON.parse(dataJson) } catch (_) { /* Ignore */ }
 			}
 
 			// If `data.json` is missing or corrupted, restore the backup
