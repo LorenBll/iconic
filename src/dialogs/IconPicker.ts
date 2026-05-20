@@ -153,7 +153,7 @@ export default class IconPicker extends Modal {
 			}
 		}
 
-		if (focusEl instanceof HTMLElement) {
+		if (focusEl?.instanceOf(HTMLElement)) {
 			event.preventDefault();
 			focusEl.focus();
 		}
@@ -690,7 +690,7 @@ export default class IconPicker extends Modal {
 		// Restore UI state
 		if (focusedIndex > -1) {
 			const iconEl = controlEl.children[focusedIndex];
-			if (iconEl instanceof HTMLElement) iconEl.focus();
+			if (iconEl?.instanceOf(HTMLElement)) iconEl.focus();
 		}
 		settingEl.scrollLeft = scrollLeft;
 

@@ -44,7 +44,7 @@ export default class RibbonIconManager extends IconManager {
 		this.setMutationObserver(activeDocument.body, { childList: true }, mutation => {
 			for (const addedNode of mutation.addedNodes) {
 				// Very fragile dialog detection
-				if (addedNode instanceof HTMLElement
+				if (addedNode.instanceOf(HTMLElement)
 					&& addedNode.hasClass('modal-container')
 					&& addedNode.find('.modal-content > div > .mobile-option-setting-item')
 					&& addedNode.find('.modal-content > .modal-button-container')) {

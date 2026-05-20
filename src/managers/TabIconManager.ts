@@ -97,13 +97,13 @@ export default class TabIconManager extends IconManager {
 			const statusEl = tabEl.find(':scope > .workspace-tab-header-inner > .workspace-tab-header-status-container');
 			this.setMutationObserver(statusEl, { childList: true }, mutation => {
 				for (const addedNode of mutation.addedNodes) {
-					if (addedNode instanceof HTMLElement && addedNode.hasClass('mod-pinned')) {
+					if (addedNode.instanceOf(HTMLElement) && addedNode.hasClass('mod-pinned')) {
 						this.refreshIcons();
 						return;
 					}
 				}
 				for (const removedNode of mutation.removedNodes) {
-					if (removedNode instanceof HTMLElement && removedNode.hasClass('mod-pinned')) {
+					if (removedNode.instanceOf(HTMLElement) && removedNode.hasClass('mod-pinned')) {
 						this.refreshIcons();
 						return;
 					}

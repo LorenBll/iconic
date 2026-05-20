@@ -52,8 +52,6 @@ export default class SuggestionIconManager extends IconManager {
 							if (manager.isDisabled()) return returnValue;
 
 							const [value, el] = args;
-							if (!value || !(el instanceof HTMLElement)) return;
-
 							switch (manager.getSuggestionType(value)) {
 								case FILE_SUGGESTION: manager.refreshFileIcon(value, el); break;
 								case TAG_SUGGESTION: manager.refreshTagIcon(value, el); break;
@@ -104,8 +102,6 @@ export default class SuggestionIconManager extends IconManager {
 							if (manager.isDisabled()) return returnValue;
 
 							const [value, el] = args;
-							if (!value || !(el instanceof HTMLElement)) return;
-
 							switch (manager.getSuggestionType(value)) {
 								case FILE_SUGGESTION: manager.refreshFileIcon(value, el); break;
 								case TAG_SUGGESTION: manager.refreshTagIcon(value, el); break;

@@ -681,7 +681,7 @@ export default class IconicPlugin extends Plugin {
 		const bodyEls = new Set<HTMLElement>();
 		this.app.workspace.iterateAllLeaves(leaf => {
 			// @ts-expect-error (Private API)
-			const bodyEl = leaf?.containerEl?.doc?.body;
+			const bodyEl: unknown = leaf?.containerEl?.doc?.body;
 			if (bodyEl instanceof HTMLElement) bodyEls.add(bodyEl);
 		});
 

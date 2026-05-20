@@ -32,9 +32,9 @@ export default class EditorIconManager extends IconManager {
 
 					// Get both tag elements
 					const beginEl = update.view.domAtPos(nodeRef.to).node.parentElement;
-					if (!(beginEl instanceof HTMLElement)) return;
+					if (!beginEl?.instanceOf(HTMLElement)) return;
 					const endEl = beginEl?.nextElementSibling;
-					if (!(endEl instanceof HTMLElement) || !endEl.hasClass('cm-hashtag-end')) return;
+					if (!endEl?.instanceOf(HTMLElement) || !endEl.hasClass('cm-hashtag-end')) return;
 
 					// Get tag
 					const tagId = endEl.getText();
@@ -118,12 +118,12 @@ export default class EditorIconManager extends IconManager {
 			childList: true,
 			subtree: true,
 		}, mutation => {
-			if (mutation.target instanceof HTMLElement && mutation.target.hasClass('metadata-property-icon')) {
+			if (mutation.target.instanceOf(HTMLElement) && mutation.target.hasClass('metadata-property-icon')) {
 				this.refreshViewIcons(view);
 				return;
 			}
 			for (const addedNode of mutation.addedNodes) {
-				if (addedNode instanceof HTMLElement && addedNode.hasClass('tree-item')) {
+				if (addedNode.instanceOf(HTMLElement) && addedNode.hasClass('tree-item')) {
 					this.refreshViewIcons(view);
 					return;
 				}
@@ -134,7 +134,7 @@ export default class EditorIconManager extends IconManager {
 			const pointEls = event.doc.elementsFromPoint(event.x, event.y);
 			const iconEl = pointEls.find(el => el.hasClass('metadata-property-icon'));
 			const propEl = pointEls.find(el => el.hasClass('metadata-property'));
-			if (iconEl && propEl instanceof HTMLElement) {
+			if (iconEl && propEl?.instanceOf(HTMLElement)) {
 				const domPropId = propEl.dataset.propertyKey; // Lowercase
 				const prop = domPropId ? this.plugin.getPropertyItem(domPropId) : null;
 				if (!prop) return;
@@ -155,7 +155,7 @@ export default class EditorIconManager extends IconManager {
 				const pointEls = event.doc.elementsFromPoint(event.x, event.y);
 				const iconEl = pointEls.find(el => el.hasClass('metadata-property-icon'));
 				const propEl = pointEls.find(el => el.hasClass('metadata-property'));
-				if (iconEl && propEl instanceof HTMLElement) {
+				if (iconEl && propEl?.instanceOf(HTMLElement)) {
 					const domPropId = propEl.dataset.propertyKey; // Lowercase
 					const prop = domPropId ? this.plugin.getPropertyItem(domPropId) : null;
 					if (prop) this.onPropertyContextMenu(prop.id);
@@ -216,7 +216,7 @@ export default class EditorIconManager extends IconManager {
 	private refreshTitleIcon(view: MarkdownView, unloading?: boolean): void {
 		if (!view.file) return;
 		// @ts-expect-error (Private API)
-		const titleEl = view.inlineTitleEl;
+		const titleEl: unknown = view.inlineTitleEl;
 		if (!(titleEl instanceof HTMLElement)) return;
 		const headerEl = titleEl.closest('.mod-header, .cm-sizer');
 		if (!(headerEl instanceof HTMLElement)) return;
