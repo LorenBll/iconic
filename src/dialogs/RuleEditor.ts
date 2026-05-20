@@ -868,8 +868,8 @@ export default class RuleEditor extends Modal {
 		setting.valDropdown.selectEl.empty();
 		if (dropdownValues && dropdownLabels) {
 			for (const value of dropdownValues) {
-				const label = dropdownLabels[value as keyof typeof dropdownLabels];
-				setting.valDropdown.addOption(value.toString(), label ?? '');
+				const label = dropdownLabels[value] ?? '';
+				setting.valDropdown.addOption(value.toString(), label);
 			}
 			if (dropdownValues.includes(setting.condition.value)) {
 				setting.valDropdown.setValue(setting.condition.value);

@@ -120,8 +120,8 @@ export default class PropertyIconManager extends IconManager {
 			// Refresh icon
 			if (this.plugin.isSettingEnabled('clickableIcons')) {
 				this.refreshIcon(prop, iconEl, event => {
-					IconPicker.openSingle(this.plugin, prop!, (newIcon, newColor) => {
-						this.plugin.savePropertyIcon(prop!, newIcon, newColor);
+					IconPicker.openSingle(this.plugin, prop, (newIcon, newColor) => {
+						this.plugin.savePropertyIcon(prop, newIcon, newColor);
 						this.plugin.refreshManagers('property');
 					});
 					event.stopPropagation();
