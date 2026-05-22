@@ -21,10 +21,10 @@ const MOVE_FILE_DIALOG = 'mfd';
  * Intercepts suggestion dialogs like quick switchers and "Move file" dialogs to add custom icons.
  */
 export default class SuggestionDialogIconManager extends IconManager {
-	private onOpenOriginal: typeof SuggestModal.prototype.onOpen;
-	private onOpenProxy: typeof SuggestModal.prototype.onOpen;
-	private setInstructionsOriginal: typeof SuggestModal.prototype.setInstructions;
-	private setInstructionsProxy: typeof SuggestModal.prototype.setInstructions;
+	private onOpenOriginal: () => void | Promise<void>;
+	private onOpenProxy: (this: void) => void | Promise<void>;
+	private setInstructionsOriginal: (instructions: Instruction[]) => void;
+	private setInstructionsProxy: (this: void, instructions: Instruction[]) => void;
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin);
@@ -277,7 +277,7 @@ class OnOpenProxyHandler implements ProxyHandler<() => void | Promise<void>> {
 					}
 				}
 			}
-		});
+		}).bind(modal);
 
 		return onOpen.call(modal);
 	}
@@ -320,7 +320,7 @@ class SetInstructionsProxyHandler implements ProxyHandler<(instructions: Instruc
 				this.iconManager.refreshSuggestionIconAQS(...args);
 				return returnValue;
 			}
-		});
+		}).bind(modal);
 
 		return setInstructions.call(modal, ...args);
 	}

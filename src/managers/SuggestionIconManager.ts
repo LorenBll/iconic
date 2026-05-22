@@ -13,11 +13,11 @@ const PROPERTY_SUGGESTION = 'property';
 export default class SuggestionIconManager extends IconManager {
 	private showAbstractSuggestionsOriginal: unknown = null;
 	private showAbstractSuggestionsProxy: unknown = null;
-	renderAbstractSuggestionProxy: typeof AbstractInputSuggest.prototype.renderSuggestion | null = null;
+	renderAbstractSuggestionProxy: ((this: void, value: any, el: HTMLElement) => void) | null = null;
 
 	private showEditorSuggestionsOriginal: unknown = null;
 	private showEditorSuggestionsProxy: unknown = null;
-	renderEditorSuggestionProxy: typeof AbstractInputSuggest.prototype.renderSuggestion | null = null;
+	renderEditorSuggestionProxy: ((this: void, value: any, el: HTMLElement) => void) | null = null;
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin);
@@ -215,7 +215,7 @@ class ShowAbstractSuggestionsProxyHandler implements ProxyHandler<object> {
 
 					return returnValue;
 				}
-			});
+			}).bind(popover);
 
 			// Replace original method
 			popover.renderSuggestion = this.iconManager.renderAbstractSuggestionProxy;
@@ -259,7 +259,7 @@ class ShowEditorSuggestionsProxyHandler implements ProxyHandler<object> {
 
 					return returnValue;
 				}
-			});
+			}).bind(popover);
 
 			// Replace original method
 			popover.renderSuggestion = this.iconManager.renderEditorSuggestionProxy;

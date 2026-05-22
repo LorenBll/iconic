@@ -6,8 +6,8 @@ import { Menu, MenuItem, MenuPositionDef } from 'obsidian';
 export default class MenuManager {
 	private menu: Menu | null = null;
 	private queuedActions: (() => void)[] = [];
-	private showAtPositionOriginal: typeof Menu.prototype.showAtPosition;
-	private showAtPositionProxy: typeof Menu.prototype.showAtPosition;
+	private showAtPositionOriginal: (position: MenuPositionDef, doc?: Document) => Menu;
+	private showAtPositionProxy: (this: void, position: MenuPositionDef, doc?: Document) => Menu;
 
 	constructor() {
 		const manager = this;
