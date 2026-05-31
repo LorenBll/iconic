@@ -33,6 +33,30 @@ export default class TabIconManager extends IconManager {
 			});
 		});
 
+		// Refresh active tab icons when a mobile sidebar changes
+		if (Platform.isMobile) {
+			// @ts-expect-error (Private API)
+			const leftTabsContainerEl: unknown = this.app.workspace.leftSplit.tabsContainerEl;
+			if (leftTabsContainerEl instanceof HTMLElement) {
+				this.setMutationObserver(leftTabsContainerEl, { childList: true }, () => {
+					const activeTabs = this.plugin.getTabItems().filter(tab => tab.isActive);
+					for (const activeTab of activeTabs) {
+						this.refreshMobileSidebarActiveTab(activeTab, leftTabsContainerEl);
+					}
+				});
+			}
+			// @ts-expect-error (Private API)
+			const rightTabsContainerEl: unknown = this.app.workspace.rightSplit.tabsContainerEl;
+			if (rightTabsContainerEl instanceof HTMLElement) {
+				this.setMutationObserver(rightTabsContainerEl, { childList: true }, () => {
+					const activeTabs = this.plugin.getTabItems().filter(tab => tab.isActive);
+					for (const activeTab of activeTabs) {
+						this.refreshMobileSidebarActiveTab(activeTab, rightTabsContainerEl);
+					}
+				});
+			}
+		}
+
 		this.refreshIcons();
 	}
 
@@ -109,38 +133,53 @@ export default class TabIconManager extends IconManager {
 					}
 				}
 			});
+		}
 
-			// Update mobile sidebars
-			if (Platform.isMobile) {
-				// @ts-expect-error (Private API)
-				this.setEventListener(this.app.workspace.leftSplit.activeTabSelectEl, 'change', () => this.refreshIcons());
-				// @ts-expect-error (Private API)
-				this.setEventListener(this.app.workspace.rightSplit.activeTabSelectEl, 'change', () => this.refreshIcons());
+		// Update active tabs in mobile sidebars
+		if (Platform.isMobile) {
+			const activeTabs = tabs.filter(tab => tab.isActive);
 
+			for (const activeTab of activeTabs) {
 				// @ts-expect-error (Private API)
-				if (this.app.workspace.leftSplit.activeTabIconEl === iconEl) {
-					// @ts-expect-error (Private API)
-					const leftActiveTabEl = this.app.workspace.leftSplit.activeTabHeaderEl;
-					if (this.plugin.settings.showMenuActions) {
-						this.setEventListener(leftActiveTabEl, 'contextmenu', () => {
-							this.onContextMenu(tab.id, tab.category);
-						});
-					} else {
-						this.stopEventListener(leftActiveTabEl, 'contextmenu');
-					}
-					// @ts-expect-error (Private API)
-				} else if (this.app.workspace.rightSplit.activeTabIconEl === iconEl) {
-					// @ts-expect-error (Private API)
-					const rightActiveTabEl = this.app.workspace.rightSplit.activeTabHeaderEl;
-					if (this.plugin.settings.showMenuActions) {
-						this.setEventListener(rightActiveTabEl, 'contextmenu', () => {
-							this.onContextMenu(tab.id, tab.category);
-						});
-					} else {
-						this.stopEventListener(rightActiveTabEl, 'contextmenu');
-					}
+				const leftTabsContainerEl: unknown = this.app.workspace.leftSplit.tabsContainerEl;
+				if (leftTabsContainerEl instanceof HTMLElement) {
+					this.refreshMobileSidebarActiveTab(activeTab, leftTabsContainerEl);
+				}
+				// @ts-expect-error (Private API)
+				const rightTabsContainerEl: unknown = this.app.workspace.rightSplit.tabsContainerEl;
+				if (rightTabsContainerEl instanceof HTMLElement) {
+					this.refreshMobileSidebarActiveTab(activeTab, rightTabsContainerEl);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Refresh the two copies of an active tab that appear in a mobile sidebar.
+	 */
+	private refreshMobileSidebarActiveTab(tab: TabItem, tabsContainerEl: HTMLElement): void {
+		// Active tab on the drawer button
+		const drawerTabEl = tabsContainerEl.find('.workspace-drawer-tab-options > .workspace-tab-header');
+		if (drawerTabEl?.getText() === tab.name) {
+			if (this.plugin.settings.showMenuActions) {
+				this.setEventListener(drawerTabEl, 'contextmenu', () => this.onContextMenu(tab.id, tab.category));
+			} else {
+				this.stopEventListener(drawerTabEl, 'contextmenu');
+			}
+			const drawerIconEl = drawerTabEl.find('.workspace-tab-header-inner > .workspace-tab-header-inner-icon');
+			if (drawerIconEl) this.refreshIcon(tab, drawerIconEl);
+		}
+
+		// Active tab inside the drawer list
+		const listTabEl = tabsContainerEl.find(`.workspace-tab-header[data-type="${tab.id}"]`);
+		if (listTabEl) {
+			if (this.plugin.settings.showMenuActions) {
+				this.setEventListener(listTabEl, 'contextmenu', () => this.onContextMenu(tab.id, tab.category));
+			} else {
+				this.stopEventListener(listTabEl, 'contextmenu');
+			}
+			const listIconEl = listTabEl.find('.workspace-tab-header-inner > .workspace-tab-header-inner-icon');
+			if (listIconEl) this.refreshIcon(tab, listIconEl);
 		}
 	}
 
