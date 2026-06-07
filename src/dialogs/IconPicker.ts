@@ -1,11 +1,13 @@
-import { ButtonComponent, ColorComponent, ExtraButtonComponent, Hotkey, Menu, Modal, Platform, Setting, TextComponent, displayTooltip, prepareFuzzySearch, setTooltip } from 'obsidian';
-import IconicPlugin, { Category, Item, Icon, ICONS, EMOJIS, STRINGS } from 'src/IconicPlugin.js';
-import ColorUtils, { COLORS } from 'src/ColorUtils.js';
+import { ButtonComponent, Hotkey, Modal, Platform, Setting } from 'obsidian';
+import IconicPlugin, { Category, Item, ICONS, EMOJIS, STRINGS } from 'src/IconicPlugin.js';
 import { RuleItem } from 'src/managers/RuleManager.js';
-import IconManager from 'src/managers/IconManager.js';
 import RuleEditor from 'src/dialogs/RuleEditor.js';
-
-const COLOR_KEYS = [...COLORS.keys()];
+import CalloutComponent from 'src/components/CalloutComponent.js';
+import IconColorComponent from 'src/components/IconColorComponent.js';
+import IconColorResetComponent from 'src/components/IconColorResetComponent.js';
+import IconSearchComponent, { IconSearchResult } from 'src/components/IconSearchComponent.js';
+import IconSearchResultsSetting from 'src/components/IconSearchResultsSetting.js';
+import ToggleButtonComponent from 'src/components/ToggleButtonComponent.js';
 
 /**
  * Callback for setting icon & color of a single item.
@@ -22,41 +24,10 @@ export interface MultiIconPickerCallback {
 }
 
 /**
- * Exposes private methods as public for use by {@link IconPicker}.
- */
-class IconPickerManager extends IconManager {
-	constructor(plugin: IconicPlugin) {
-		super(plugin);
-	}
-
-	/**
-	 * @override
-	 */
-	refreshIcon(item: Item | Icon, iconEl: HTMLElement, onClick?: ((event: MouseEvent) => void)): void {
-		super.refreshIcon(item, iconEl, onClick);
-	}
-
-	/**
-	 * @override
-	 */
-	setEventListener<K extends keyof HTMLElementEventMap>(element: HTMLElement, type: K, listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void {
-		super.setEventListener(element, type, listener, options);
-	}
-
-	/**
-	 * @override
-	 */
-	setMutationObserver(element: HTMLElement | null, options: MutationObserverInit, callback: (mutation: MutationRecord) => void): void {
-		super.setMutationObserver(element, options, callback);
-	}
-}
-
-/**
  * Dialog for changing icons & colors of single/multiple items.
  */
 export default class IconPicker extends Modal {
 	private readonly plugin: IconicPlugin;
-	private readonly iconManager: IconPickerManager;
 
 	// Item
 	private readonly items: Item[];
@@ -66,21 +37,15 @@ export default class IconPicker extends Modal {
 	private readonly multiCallback: MultiIconPickerCallback | null;
 
 	// Components
-	private overruleEl!: HTMLElement;
+	private overruleCallout!: CalloutComponent;
 	private searchSetting!: Setting;
-	private searchResultsSetting!: Setting;
-	private colorResetButton!: ExtraButtonComponent;
-	private colorPicker!: ColorComponent;
-	private searchField!: TextComponent;
-	private iconModeButton!: ExtraButtonComponent;
-	private emojiModeButton!: ExtraButtonComponent;
-	private mobileModeButton!: ButtonComponent;
-	private colorPickerEl!: HTMLElement;
+	private resultsSetting!: IconSearchResultsSetting;
+	private resetButton!: IconColorResetComponent;
+	private colorPicker!: IconColorComponent;
+	private searchField!: IconSearchComponent;
 
 	// State
-	private colorPickerPaused = false;
-	private colorPickerHovered = false;
-	private readonly searchResults: [icon: string, iconName: string][] = [];
+	private searchResults: IconSearchResult[] = [];
 
 	private constructor(
 		plugin: IconicPlugin,
@@ -90,7 +55,6 @@ export default class IconPicker extends Modal {
 	) {
 		super(plugin.app);
 		this.plugin = plugin;
-		this.iconManager = new IconPickerManager(plugin);
 		this.items = items;
 		const firstItem = this.items.first();
 		if (firstItem) {
@@ -128,26 +92,26 @@ export default class IconPicker extends Modal {
 		let focusEl: Element | null = null;
 
 		switch (event.key) {
-			case 'ArrowUp': this.previousColor(); return;
-			case 'ArrowDown': this.nextColor(); return;
+			case 'ArrowUp': this.colorPicker.previousColor; return;
+			case 'ArrowDown': this.colorPicker.nextColor(); return;
 			case 'ArrowLeft': {
 				// Search results
-				if (this.searchResultsSetting.settingEl.contains(event.target)) {
-					if (event.target !== this.searchResultsSetting.settingEl && event.target.previousElementSibling) {
+				if (this.resultsSetting.settingEl.contains(event.target)) {
+					if (event.target !== this.resultsSetting.settingEl && event.target.previousElementSibling) {
 						focusEl = event.target.previousElementSibling;
 					} else if (!event.repeat) {
-						focusEl = this.searchResultsSetting.controlEl.lastElementChild;
+						focusEl = this.resultsSetting.controlEl.lastElementChild;
 					}
 				}
 				break;
 			}
 			case 'ArrowRight': {
 				// Search results
-				if (this.searchResultsSetting.settingEl.contains(event.target)) {
-					if (event.target !== this.searchResultsSetting.settingEl && event.target.nextElementSibling) {
+				if (this.resultsSetting.settingEl.contains(event.target)) {
+					if (event.target !== this.resultsSetting.settingEl && event.target.nextElementSibling) {
 						focusEl = event.target.nextElementSibling;
 					} else if (!event.repeat) {
-						focusEl = this.searchResultsSetting.controlEl.firstElementChild;
+						focusEl = this.resultsSetting.controlEl.firstElementChild;
 					}
 				}
 			}
@@ -171,12 +135,12 @@ export default class IconPicker extends Modal {
 			event.target.click();
 		}
 		// Color picker
-		else if (event.target === this.colorPickerEl) {
+		else if (event.target === this.colorPicker.colorEl) {
 			event.preventDefault();
-			const rect = this.colorPickerEl.getBoundingClientRect();
+			const rect = this.colorPicker.colorEl.getBoundingClientRect();
 			const x = rect.x + rect.width / 4;
 			const y = rect.y + rect.height / 4;
-			this.openColorMenu(x, y);
+			this.colorPicker.showColorOptions(x, y);
 		}
 		// Search field
 		else if (event.target === this.searchField.inputEl && event.key === 'Enter') {
@@ -196,8 +160,8 @@ export default class IconPicker extends Modal {
 
 		// Anywhere except the search field
 		if (event.target !== this.searchField.inputEl ) {
-			if (event.target === this.colorResetButton.extraSettingsEl) this.colorPickerEl.focus();
-			this.resetColor();
+			if (event.target === this.resetButton.extraSettingsEl) this.colorPicker.colorEl?.focus();
+			this.colorPicker.setColor(null);
 		}
 	}
 
@@ -226,9 +190,12 @@ export default class IconPicker extends Modal {
 			? STRINGS.iconPicker.changeIcon
 			: STRINGS.iconPicker.changeIcons.replace('{#}', this.items.length.toString())
 		);
-		this.updateOverruleReminder();
 
-		// Item name
+		// CALLOUT: Overrule callout
+		this.overruleCallout = new CalloutComponent(this.contentEl);
+		this.updateOverruleCallout();
+
+		// SETTING: Item name
 		const showItemName = this.plugin.settings.showItemName === 'on'
 			|| Platform.isDesktop && this.plugin.settings.showItemName === 'desktop'
 			|| Platform.isMobile && this.plugin.settings.showItemName === 'mobile';
@@ -271,111 +238,78 @@ export default class IconPicker extends Modal {
 			}
 		}
 
-		// Search
+		// SETTING: Search
 		this.searchSetting = new Setting(this.contentEl)
-			.addExtraButton(colorResetButton => { colorResetButton
-				.setIcon('lucide-rotate-ccw')
+			.addComponent(controlEl => new IconColorResetComponent(controlEl)
 				.setTooltip(STRINGS.iconPicker.resetColor, { delay: 300 })
-				.onClick(() => this.resetColor());
-				colorResetButton.extraSettingsEl.addClass('iconic-reset-color');
-				colorResetButton.extraSettingsEl.toggleClass('iconic-invisible', this.color === null);
-				colorResetButton.extraSettingsEl.tabIndex = this.color === null ? -1 : 0;
-				this.iconManager.setEventListener(colorResetButton.extraSettingsEl, 'pointerdown', event => {
-					event.preventDefault();
-				});
-				this.colorResetButton = colorResetButton;
-			})
-			.addColorPicker(colorPicker => { colorPicker
-				.setValueRgb(ColorUtils.toRgbObject(this.color))
-				.onChange(value => {
-					if (this.colorPickerPaused) return;
-					this.color = value;
-					this.colorResetButton.extraSettingsEl.removeClass('iconic-invisible');
-					this.colorResetButton.extraSettingsEl.tabIndex = 0;
-					this.updateColorTooltip();
-					this.updateSearchResults();
-				});
-				this.colorPicker = colorPicker;
-			})
-			.addSearch(searchField => { searchField
+				.onClick(() => this.colorPicker.setColor(null))
+				.then(component => {
+					component.toggleVisibility(this.color !== null);
+					this.resetButton = component;
+				})
+			)
+			.addComponent(controlEl => new IconColorComponent(controlEl)
+				.setColor(this.color ?? null)
+				.setColorOptions({
+					red: STRINGS.iconPicker.colors.red,
+					orange: STRINGS.iconPicker.colors.orange,
+					yellow: STRINGS.iconPicker.colors.yellow,
+					green: STRINGS.iconPicker.colors.green,
+					cyan: STRINGS.iconPicker.colors.cyan,
+					blue: STRINGS.iconPicker.colors.blue,
+					purple: STRINGS.iconPicker.colors.purple,
+					pink: STRINGS.iconPicker.colors.pink,
+					gray: STRINGS.iconPicker.colors.gray,
+				})
+				.onColorChange(color => {
+					this.color = color;
+					this.resetButton.toggleVisibility(color !== null)
+					this.resultsSetting.setColor(color);
+				})
+				.then(component => {
+					if (this.plugin.settings.colorPicker1 === 'list' || this.plugin.settings.colorPicker1 === 'rgb') {
+						component.setPrimaryMode(this.plugin.settings.colorPicker1);
+					}
+					if (this.plugin.settings.colorPicker2 === 'list' || this.plugin.settings.colorPicker2 === 'rgb') {
+						component.setSecondaryMode(this.plugin.settings.colorPicker2);
+					}
+					this.colorPicker = component;
+				})
+			)
+			.addComponent(controlEl => new IconSearchComponent(controlEl)
 				.setPlaceholder(STRINGS.iconPicker.searchIcons)
-				.onChange(() => this.updateSearchResults());
-				searchField.inputEl.enterKeyHint = 'go';
-				this.searchField = searchField;
-			});
+				.onSearch((query, results) => {
+					// If query is blank, just show the current icon
+					if (!query && this.icon) {
+						const name = ICONS.get(this.icon) ?? this.icon;
+						void this.resultsSetting.setResults([[this.icon, name, 0]]);
+						return;
+					}
+					void this.resultsSetting.setResults(results);
+				})
+				.then(component => this.searchField = component)
+			);
 		if (!Platform.isPhone) this.searchSetting.setName(STRINGS.iconPicker.search);
 
-		// Color picker
-		let openRgbPicker = false;
-		this.colorPickerEl = this.searchSetting.controlEl.find('input[type="color"]');
-		// Reset tooltip delay when cursor starts hovering
-		this.iconManager.setEventListener(this.colorPickerEl, 'pointerenter', () => {
-			this.updateColorTooltip();
-			this.colorPickerHovered = true;
-		});
-		this.iconManager.setEventListener(this.colorPickerEl, 'pointerleave', () => {
-			this.colorPickerHovered = false;
-			this.updateColorTooltip();
-		});
-		// Primary color picker
-		this.iconManager.setEventListener(this.colorPickerEl, 'click', event => {
-			if (openRgbPicker === true) {
-				openRgbPicker = false;
-			} else if (this.plugin.settings.colorPicker1 === 'list') {
-				this.openColorMenu(event.x, event.y);
-				event.preventDefault();
-			}
-		});
-		// Secondary color picker
-		this.iconManager.setEventListener(this.colorPickerEl, 'contextmenu', event => {
-			navigator.vibrate?.(100); // Not supported on iOS
-			if (this.plugin.settings.colorPicker2 === 'rgb') {
-				openRgbPicker = true;
-				this.colorPickerEl.click();
-			} else if (this.plugin.settings.colorPicker2 === 'list') {
-				this.openColorMenu(event.x, event.y);
-				event.preventDefault();
-			}
-		});
-		this.iconManager.setEventListener(this.colorPickerEl, 'wheel', event => {
-			if (event.deltaY + event.deltaX < 0) {
-				this.previousColor();
-			} else {
-				this.nextColor();
-			}
-		}, { passive: true });
-		this.updateColorPicker();
-
-		// Search results
-		this.searchResultsSetting = new Setting(this.contentEl);
-		this.searchResultsSetting.settingEl.addClass('iconic-search-results');
-		this.searchResultsSetting.settingEl.tabIndex = 0;
-		// Allow vertical scrolling to work horizontally
-		this.iconManager.setEventListener(this.searchResultsSetting.settingEl, 'wheel', event => {
-			if (this.modalEl.doc.body.hasClass('mod-rtl')) {
-				this.searchResultsSetting.settingEl.scrollLeft -= event.deltaY;
-			} else {
-				this.searchResultsSetting.settingEl.scrollLeft += event.deltaY;
-			}
-		}, { passive: true });
-
-		// Match styling of bookmark edit dialog
-		const buttonContainerEl = this.modalEl.createDiv({ cls: 'modal-button-container' });
-		const buttonRowEl = Platform.isMobile ? buttonContainerEl.createDiv({ cls: 'iconic-button-row' }) : null;
-
-		// [Remove]
-		if (this.icon !== null || this.color !== null) {
-			new ButtonComponent(buttonRowEl ?? buttonContainerEl)
-				.setButtonText(this.items.length === 1
-					? STRINGS.menu.removeIcon
-					: STRINGS.menu.removeIcons.replace('{#}', this.items.length.toString())
-				)
-				.onClick(() => this.closeAndSave(null, null))
-				.buttonEl.addClasses(Platform.isPhone
-					? ['mod-warning']
-					: ['mod-secondary', 'mod-destructive']
-				);
-		}
+		// SETTING: Search results
+		this.resultsSetting = new IconSearchResultsSetting(this.contentEl)
+			.setLimit(this.plugin.settings.maxSearchResults)
+			.setColor(this.color ?? null)
+			.forEach((iconButton, [id, name]) => {
+				iconButton
+					.onClick(() => this.closeAndSave(id, this.color))
+					.setTooltip(name, {
+						delay: 300,
+						placement: Platform.isMobile ? 'top' : undefined,
+					});
+				// Set long-touch tooltips on mobile
+				if (Platform.isMobile) {
+					iconButton.onSecondaryClick(() => {
+						navigator.vibrate?.(100); // Not supported on iOS
+						iconButton.displayTooltip(name, { placement: 'top' });
+					});
+				}
+			});
 
 		// Auto-select the most useful mode
 		if (this.icon) {
@@ -391,41 +325,54 @@ export default class IconPicker extends Modal {
 		} else if (!dialogState.iconMode && !dialogState.emojiMode) {
 			dialogState.iconMode = true;
 		}
+		this.searchField.setModes(dialogState);
 
-		// BUTTONS: Toggle icons & emojis
-		if (Platform.isMobile && buttonRowEl) {
-			this.mobileModeButton = new ButtonComponent(buttonRowEl)
-				.onClick(() => this.toggleMobileSearchMode());
-			this.iconManager.setEventListener(this.mobileModeButton.buttonEl, 'pointerdown', event => {
-				event.preventDefault(); // Prevent focus theft
-			});
-			this.updateMobileSearchMode();
-		} else {
-			this.iconModeButton = new ExtraButtonComponent(buttonContainerEl)
-				.setTooltip(STRINGS.iconPicker.toggleIcons, { placement: 'top', delay: 300 })
-				.onClick(() => {
-					dialogState.iconMode = !dialogState.iconMode;
-					this.updateDesktopSearchMode();
-				});
-			this.iconModeButton.extraSettingsEl.tabIndex = 0;
-			this.emojiModeButton = new ExtraButtonComponent(buttonContainerEl)
-				.setTooltip(STRINGS.iconPicker.toggleEmojis, { placement: 'top', delay: 300 })
-				.onClick(() => {
-					dialogState.emojiMode = !dialogState.emojiMode;
-					this.updateDesktopSearchMode();
-				});
-			this.emojiModeButton.extraSettingsEl.tabIndex = 0;
-			this.iconManager.setEventListener(this.iconModeButton.extraSettingsEl, 'pointerdown', event => {
-				event.preventDefault(); // Prevent focus theft
-			});
-			this.iconManager.setEventListener(this.emojiModeButton.extraSettingsEl, 'pointerdown', event => {
-				event.preventDefault(); // Prevent focus theft
-			});
-			this.updateDesktopSearchMode();
+		// Match styling of bookmark edit dialog
+		const buttonContainerEl = this.modalEl.createDiv({ cls: 'modal-button-container' });
+		const removeContainerEl = Platform.isMobile ? buttonContainerEl.createDiv({ cls: 'iconic-button-row' }) : buttonContainerEl;
+		const saveContainerEl = Platform.isPhone ? this.modalEl : buttonContainerEl;
+
+		// BUTTON: Remove
+		if (this.icon || this.color) {
+			const removeEl = new ButtonComponent(removeContainerEl)
+				.setButtonText(this.items.length === 1
+					? STRINGS.menu.removeIcon
+					: STRINGS.menu.removeIcons.replace('{#}', this.items.length.toString())
+				)
+				.onClick(() => this.closeAndSave(null, null))
+				.buttonEl;
+			removeEl.addClasses(Platform.isPhone
+				? ['mod-warning']
+				: ['mod-secondary', 'mod-destructive']
+			);
 		}
 
-		// [Cancel]
-		new ButtonComponent(Platform.isPhone ? this.modalEl : buttonContainerEl)
+		// BUTTON: Toggle icons
+		new ToggleButtonComponent(removeContainerEl)
+			.setValue(dialogState.iconMode)
+			.setTooltip(STRINGS.iconPicker.toggleIcons, { delay: 300, placement: 'top' })
+			.setIcons('lucide-image', 'lucide-square')
+			.setClass('iconic-mode-button')
+			.onChange(on => {
+				dialogState.iconMode = on;
+				this.updateTitle();
+				this.searchField.setModes({ iconMode: on });
+			});
+
+		// BUTTON: Toggle emojis
+		new ToggleButtonComponent(removeContainerEl)
+			.setValue(dialogState.emojiMode)
+			.setTooltip(STRINGS.iconPicker.toggleEmojis, { delay: 300, placement: 'top' })
+			.setIcons('lucide-smile', 'lucide-circle')
+			.setClass('iconic-mode-button')
+			.onChange(on => {
+				dialogState.emojiMode = on;
+				this.updateTitle();
+				this.searchField.setModes({ emojiMode: on });
+			});
+
+		// BUTTON: Cancel
+		new ButtonComponent(saveContainerEl)
 			.setButtonText(STRINGS.iconPicker.cancel)
 			.onClick(() => this.close())
 			.buttonEl.addClasses(Platform.isPhone
@@ -433,280 +380,47 @@ export default class IconPicker extends Modal {
 				: ['mod-cancel']
 			);
 
-		// [Save]
-		new ButtonComponent(Platform.isPhone ? this.modalEl : buttonContainerEl)
+		// BUTTON: Save
+		const saveEl = new ButtonComponent(saveContainerEl)
 			.setButtonText(STRINGS.iconPicker.save)
 			.onClick(() => this.closeAndSave(this.icon, this.color))
-			.buttonEl.addClasses(Platform.isPhone
-				? ['modal-nav-action', 'mod-cta']
-				: ['mod-cta']
-			);
+			.buttonEl;
+		saveEl.addClasses(Platform.isPhone
+			? ['modal-nav-action', 'mod-cta']
+			: ['mod-cta']
+		);
 
 		// Hack to guarantee initial focus
 		activeWindow.requestAnimationFrame(() => this.searchField.inputEl.select());
-
-		this.updateSearchResults();
 	}
 
-	/**
-	 * Open color menu at the given coordinates.
-	 */
-	private openColorMenu(x: number, y: number): void {
-		const menu = new Menu();
-		for (const color of COLOR_KEYS) {
-			menu.addItem(menuItem => { menuItem
-				.setTitle(STRINGS.iconPicker.colors[color as keyof typeof STRINGS.iconPicker.colors])
-				.setChecked(color === this.color)
-				.setSection('color')
-				.onClick(() => {
-					if (this.color === color) {
-						this.color = null;
-						this.colorResetButton.extraSettingsEl.addClass('iconic-invisible');
-						this.colorResetButton.extraSettingsEl.tabIndex = -1;
-					} else {
-						this.color = color;
-						this.colorResetButton.extraSettingsEl.removeClass('iconic-invisible');
-						this.colorResetButton.extraSettingsEl.tabIndex = 0;
-					}
-					this.updateColorPicker();
-					this.updateSearchResults();
-				});
-				// @ts-expect-error (Private API)
-				this.iconManager.refreshIcon({ icon: 'lucide-paint-bucket', color }, menuItem.iconEl);
-			});
-		}
-		menu.showAtPosition({ x, y });
-	}
-
-	/**
-	 * Select previous color in list. Used by keyboard and scrollwheel events.
-	 */
-	private previousColor(): void {
-		let index = COLOR_KEYS.length - 1;
-		if (this.color && COLOR_KEYS.includes(this.color) && this.color !== COLOR_KEYS.first()) {
-			index = COLOR_KEYS.indexOf(this.color) - 1;
-		}
-		this.color = COLOR_KEYS[index];
-		this.colorResetButton.extraSettingsEl.removeClass('iconic-invisible');
-		this.colorResetButton.extraSettingsEl.tabIndex = 0;
-		this.updateColorPicker();
-		this.updateSearchResults();
-	}
-
-	/**
-	 * Select next color in list. Used by keyboard and scrollwheel events.
-	 */
-	private nextColor(): void {
-		let index = 0;
-		if (this.color && COLOR_KEYS.includes(this.color) && this.color !== COLOR_KEYS.last()) {
-			index = COLOR_KEYS.indexOf(this.color) + 1;
-		}
-		this.color = COLOR_KEYS[index];
-		this.colorResetButton.extraSettingsEl.removeClass('iconic-invisible');
-		this.colorResetButton.extraSettingsEl.tabIndex = 0;
-		this.updateColorPicker();
-		this.updateSearchResults();
-	}
-
-	/**
-	 * Reset icon to the default color.
-	 */
-	private resetColor(): void {
-		this.color = null;
-		this.colorResetButton.extraSettingsEl.addClass('iconic-invisible');
-		this.colorResetButton.extraSettingsEl.tabIndex = -1;
-		this.updateColorPicker();
-		this.updateSearchResults();
-	}
-
-	private toggleMobileSearchMode(): void {
+	private updateTitle(): void {
 		const { dialogState } = this.plugin.settings;
-		if (dialogState.iconMode && dialogState.emojiMode) {
-			dialogState.iconMode = true;
-			dialogState.emojiMode = false;
-		} else if (dialogState.iconMode) {
-			dialogState.iconMode = false;
-			dialogState.emojiMode = true;
-		} else {
-			dialogState.iconMode = true;
-			dialogState.emojiMode = true;
-		}
+		const isSingular = this.items.length === 1;
 
-		this.updateMobileSearchMode();
-	}
-
-	private updateMobileSearchMode(): void {
-		const { dialogState } = this.plugin.settings;
 		if (dialogState.iconMode && dialogState.emojiMode) {
-			this.setTitle(this.items.length === 1
+			this.setTitle(isSingular
 				? STRINGS.iconPicker.changeMix
 				: STRINGS.iconPicker.changeMixes.replace('{#}', this.items.length.toString())
 			);
-			this.searchField.setPlaceholder(STRINGS.iconPicker.searchMix);
-			this.mobileModeButton?.setButtonText(STRINGS.iconPicker.icons);
-		} else if (dialogState.iconMode) {
-			this.setTitle(this.items.length === 1
-				? STRINGS.iconPicker.changeIcon
-				: STRINGS.iconPicker.changeIcons.replace('{#}', this.items.length.toString())
-			);
-			this.searchField.setPlaceholder(STRINGS.iconPicker.searchIcons);
-			this.mobileModeButton?.setButtonText(STRINGS.iconPicker.emojis);
-		} else {
-			this.setTitle(this.items.length === 1
-				? STRINGS.iconPicker.changeEmoji
-				: STRINGS.iconPicker.changeEmojis.replace('{#}', this.items.length.toString())
-			);
-			this.searchField.setPlaceholder(STRINGS.iconPicker.searchEmojis);
-			this.mobileModeButton?.setButtonText(STRINGS.iconPicker.mixed);
-		}
-
-		this.updateSearchResults();
-	}
-
-	private updateDesktopSearchMode(): void {
-		const { dialogState } = this.plugin.settings;
-		this.iconModeButton.setIcon(dialogState.iconMode ? 'lucide-image' : 'lucide-square');
-		this.emojiModeButton.setIcon(dialogState.emojiMode ? 'lucide-smile' : 'lucide-circle');
-		this.iconModeButton.extraSettingsEl.toggleClass('iconic-mode-selected', dialogState.iconMode);
-		this.emojiModeButton.extraSettingsEl.toggleClass('iconic-mode-selected', dialogState.emojiMode);
-
-		if (dialogState.iconMode && dialogState.emojiMode) {
-			this.setTitle(this.items.length === 1
-				? STRINGS.iconPicker.changeMix
-				: STRINGS.iconPicker.changeMixes.replace('{#}', this.items.length.toString())
-			);
-			this.searchField.setPlaceholder(STRINGS.iconPicker.searchMix);
 		} else if (dialogState.emojiMode) {
-			this.setTitle(this.items.length === 1
+			this.setTitle(isSingular
 				? STRINGS.iconPicker.changeEmoji
 				: STRINGS.iconPicker.changeEmojis.replace('{#}', this.items.length.toString())
 			);
-			this.searchField.setPlaceholder(STRINGS.iconPicker.searchEmojis);
 		} else {
-			this.setTitle(this.items.length === 1
+			this.setTitle(isSingular
 				? STRINGS.iconPicker.changeIcon
 				: STRINGS.iconPicker.changeIcons.replace('{#}', this.items.length.toString())
 			);
 			this.searchField.setPlaceholder(STRINGS.iconPicker.searchIcons);
 		}
-
-		this.updateSearchResults();
 	}
 
 	/**
-	 * Update color of color picker without triggering its onChange() logic.
+	 * Display a callout if this icon is currently overruled.
 	 */
-	private updateColorPicker(): void {
-		this.colorPickerPaused = true;
-		this.colorPicker.setValueRgb(ColorUtils.toRgbObject(this.color));
-		this.colorPickerPaused = false;
-		this.updateColorTooltip();
-	}
-
-	/**
-	 * Update just the color picker tooltip.
-	 */
-	private updateColorTooltip(): void {
-		// Set tooltip message
-		let tooltip = STRINGS.iconPicker.changeColor;
-		if (this.color) {
-			if (COLOR_KEYS.includes(this.color)) {
-				tooltip = STRINGS.iconPicker.colors[this.color as keyof typeof STRINGS.iconPicker.colors];
-			} else {
-				tooltip = this.color;
-			}
-		}
-
-		// Update tooltip instantly if cursor is hovering over color picker
-		if (this.colorPickerHovered) {
-			displayTooltip(this.colorPickerEl, tooltip, { delay: 1 });
-		} else {
-			setTooltip(this.colorPickerEl, tooltip, { delay: 300 });
-		}
-	}
-
-	/**
-	 * Update search results based on current query.
-	 */
-	private updateSearchResults(): void {
-		const query = this.searchField.getValue();
-		const fuzzySearch = prepareFuzzySearch(query);
-		const matches: [score: number, iconEntry: [string, string]][] = [];
-		const iconEntries = [
-			...(this.plugin.settings.dialogState.iconMode ? ICONS : []),
-			...(this.plugin.settings.dialogState.emojiMode ? EMOJIS : []),
-		];
-
-		// Search all icon names
-		if (query) for (const [icon, iconName] of iconEntries) {
-			if (query === icon) { // Recognize emoji input
-				matches.push([0, [icon, iconName]]);
-			} else {
-				const fuzzyMatch = fuzzySearch(iconName);
-				if (fuzzyMatch) matches.push([fuzzyMatch.score, [icon, iconName]]);
-			}
-		}
-
-		// Sort matches by score
-		matches.sort(([scoreA,], [scoreB,]) => scoreA > scoreB ? -1 : +1);
-
-		// Copy into an unscored array
-		this.searchResults.length = 0;
-		for (const [, iconEntry] of matches) {
-			this.searchResults.push(iconEntry);
-			if (this.searchResults.length === this.plugin.settings.maxSearchResults) break;
-		}
-
-		// Preserve UI state
-		const { controlEl, settingEl } = this.searchResultsSetting;
-		const focusedEl = this.modalEl.doc.activeElement;
-		const focusedIndex = focusedEl ? controlEl.indexOf(focusedEl) : -1;
-		const scrollLeft = settingEl.scrollLeft;
-
-		// Populate icon buttons
-		this.searchResultsSetting.clear();
-		for (const iconEntry of this.searchResults) {
-			const [icon, iconName] = iconEntry;
-			this.searchResultsSetting.addExtraButton(iconButton => {
-				iconButton.setTooltip(iconName, {
-					delay: 300,
-					placement: Platform.isPhone ? 'top' : 'bottom',
-				});
-				const iconEl = iconButton.extraSettingsEl;
-				iconEl.addClass('iconic-search-result');
-				iconEl.tabIndex = -1;
-
-				this.iconManager.refreshIcon({ icon: icon, color: this.color ?? null }, iconEl, () => {
-					this.closeAndSave(icon, this.color);
-				});
-
-				if (Platform.isPhone) this.iconManager.setEventListener(iconEl, 'contextmenu', () => {
-					navigator.vibrate?.(100); // Not supported on iOS
-					displayTooltip(iconEl, iconName, { placement: 'top' });
-				});
-			});
-		}
-
-		// Restore UI state
-		if (focusedIndex > -1) {
-			const iconEl = controlEl.children[focusedIndex];
-			if (iconEl?.instanceOf(HTMLElement)) iconEl.focus();
-		}
-		settingEl.scrollLeft = scrollLeft;
-
-		// Use an invisible button to preserve height
-		if (this.searchResults.length === 0) {
-			this.searchResultsSetting.addExtraButton(button => {
-				button.extraSettingsEl.addClasses(['iconic-invisible', 'iconic-search-result']);
-			});
-		}
-	}
-
-	/**
-	 * Display a reminder if this icon is currently overruled.
-	 */
-	private updateOverruleReminder(): void {
-		this.overruleEl?.remove();
+	private updateOverruleCallout(): void {
 		let page: Category;
 		let rule: RuleItem | null = null;
 
@@ -725,42 +439,38 @@ export default class IconPicker extends Modal {
 			}
 		}
 
+		// Hide callout if nothing is overruling this icon
 		if (rule) {
-			const rgb = ColorUtils.toRgbObject(this.items.length === 1 ? rule.color : 'gray');
-			const cssColor = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+			this.overruleCallout.setVisibility(true);
+		} else {
+			this.overruleCallout.setVisibility(false);
+			return;
+		}
 
-			// Create callout elements
-			this.overruleEl = createDiv({
-				cls: 'callout',
-				attr: { style: '--callout-color: ' + cssColor },
-			});
-			const titleEl = this.overruleEl.createDiv({ cls: 'callout-title' });
-			const iconEl = titleEl.createDiv({ cls: 'callout-icon' });
-			const innerEl = titleEl.createDiv({ cls: 'callout-title-inner' });
-
-			// Populate callout message
-			if (this.items.length > 1) {
-				this.iconManager.refreshIcon({ icon: 'lucide-book-image', color: 'gray' }, iconEl);
-				innerEl.setText(STRINGS.iconPicker.overrules);
-			} else {
-				this.iconManager.refreshIcon(rule, iconEl);
-				innerEl.setText(STRINGS.iconPicker.overrulePrefix);
-				const linkEl = innerEl.createEl('a', { text: rule.name });
-				innerEl.appendText(STRINGS.iconPicker.overruleSuffix);
-				this.iconManager.setEventListener(linkEl, 'click', () => {
-					if (page && rule) RuleEditor.open(this.plugin, page, rule, newRule => {
-						if (!rule) return;
-						const isRulingChanged = newRule
-							? this.plugin.ruleManager?.saveRule(page, newRule)
-							: this.plugin.ruleManager?.deleteRule(page, rule.id);
-						if (isRulingChanged) {
-							this.plugin.refreshManagers(page);
-						}
-						this.updateOverruleReminder();
-					});
+		// If multiple items are being edited, display a non-specific message
+		if (this.items.length > 1) {
+			this.overruleCallout
+				.setIcon('lucide-book-image')
+				.setColor(null)
+				.setTitle(STRINGS.iconPicker.overrules);
+		// Else, display a clickable link to the specific rule
+		} else {
+			this.overruleCallout
+				.setIcon(rule.icon)
+				.setColor(rule.color);
+			const titleFrag = new DocumentFragment();
+			titleFrag.appendText(STRINGS.iconPicker.overrulePrefix);
+			titleFrag.createEl('a', { text: rule.name }).addEventListener('click', () => {
+				RuleEditor.open(this.plugin, page, rule, newRule => {
+					const isRulingChanged = newRule
+						? this.plugin.ruleManager?.saveRule(page, newRule)
+						: this.plugin.ruleManager?.deleteRule(page, rule.id);
+					if (isRulingChanged) this.plugin.refreshManagers(page);
+					this.updateOverruleCallout();
 				});
-			}
-			this.contentEl.prepend(this.overruleEl);
+			});
+			titleFrag.appendText(STRINGS.iconPicker.overruleSuffix);
+			this.overruleCallout.setTitle(titleFrag);
 		}
 	}
 
