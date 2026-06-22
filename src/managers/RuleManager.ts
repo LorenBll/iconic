@@ -591,9 +591,9 @@ export default class RuleManager {
 					if (!file.icon || operator === 'iconIs' || operator === 'hasValue') {
 						source = file.icon;
 					} else if (ICONS.has(file.icon)) {
-						source = ICONS.get(file.icon) ?? null;
+						source = ICONS.get(file.icon)?.[0] ?? null;
 					} else if (EMOJIS.get(file.icon)) {
-						source = EMOJIS.get(file.icon) ?? null;
+						source = EMOJIS.get(file.icon)?.[0] ?? null;
 					}
 					break;
 				}

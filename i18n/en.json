@@ -15,8 +15,8 @@
 		"changeIcons": "Change {#} icons...",
 		"removeIcon": "Remove icon",
 		"removeIcons": "Remove {#} icons",
-		"resetColor": "Reset colour",
-		"resetColors": "Reset {#} colours",
+		"resetColor": "Reset color",
+		"resetColors": "Reset {#} colors",
 		"editRule": "Edit rule..."
 	},
 	"iconPicker": {
@@ -33,8 +33,8 @@
 		"searchIcons": "Search icons...",
 		"searchEmojis": "Search emojis...",
 		"searchMix": "Search icons / emojis...",
-		"changeColor": "Change colour",
-		"resetColor": "Reset colour",
+		"changeColor": "Change color",
+		"resetColor": "Reset color",
 		"toggleIcons": "Toggle icons",
 		"toggleEmojis": "Toggle emojis",
 		"icons": "Icons",
@@ -51,7 +51,7 @@
 			"blue": "Blue",
 			"purple": "Purple",
 			"pink": "Pink",
-			"gray": "Grey"
+			"gray": "Gray"
 		}
 	},
 	"usageChecker": {
@@ -125,7 +125,7 @@
 		},
 		"source": {
 			"icon": "Icon",
-			"color": "Colour",
+			"color": "Color",
 			"name": "Name",
 			"filename": "Filename",
 			"extension": "Extension",
@@ -307,7 +307,7 @@
 			"off": "Off",
 			"desktop": "Desktop only",
 			"mobile": "Mobile only",
-			"list": "List of colours",
+			"list": "List of colors",
 			"rgb": "RGB picker",
 			"none": "None"
 		},
@@ -382,31 +382,31 @@
 			"desc": "Choose how many icons to show at once."
 		},
 		"colorPicker1": {
-			"name": "Main colour picker",
-			"descDesktop": "Appears when you click the colour bubble.",
-			"descMobile": "Appears when you tap the colour bubble."
+			"name": "Main color picker",
+			"descDesktop": "Appears when you click the color bubble.",
+			"descMobile": "Appears when you tap the color bubble."
 		},
 		"colorPicker2": {
-			"name": "Second colour picker",
-			"descDesktop": "Appears when you secondary-click the colour bubble.",
-			"descMobile": "Appears when you press & hold the colour bubble."
+			"name": "Second color picker",
+			"descDesktop": "Appears when you secondary-click the color bubble.",
+			"descMobile": "Appears when you press & hold the color bubble."
 		},
 		"headingAdvanced": "Advanced",
 		"uncolorHover": {
-			"name": "Colourless hover",
-			"desc": "Disable icon colour while hovering an item."
+			"name": "Colorless hover",
+			"desc": "Disable icon color while hovering an item."
 		},
 		"uncolorDrag": {
-			"name": "Colourless drag",
-			"desc": "Disable icon colour while dragging an item."
+			"name": "Colorless drag",
+			"desc": "Disable icon color while dragging an item."
 		},
 		"uncolorSelect": {
-			"name": "Colourless selection",
-			"desc": "Disable icon colour while item is selected."
+			"name": "Colorless selection",
+			"desc": "Disable icon color while item is selected."
 		},
 		"uncolorQuick": {
-			"name": "Colourless ribbon button",
-			"desc": "Disable icon colour for the quick access ribbon button on mobile."
+			"name": "Colorless ribbon button",
+			"desc": "Disable icon color for the quick access ribbon button on mobile."
 		},
 		"viewUnusedIcons": {
 			"name": "View unused icons",

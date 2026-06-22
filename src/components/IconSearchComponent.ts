@@ -67,7 +67,7 @@ export default class IconSearchComponent extends SearchComponent {
 		];
 		const results: IconSearchResult[] = [];
 
-		for (const [id, name] of iconEntries) {
+		for (const [id, [name]] of iconEntries) {
 			const idLower = id.toLowerCase();
 			const nameLower = name.toLowerCase();
 
