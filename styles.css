@@ -279,6 +279,12 @@ a.tag {
 	--icon-size: var(--icon-xl);
 	--icon-stroke: var(--icon-xl-stroke-width);
 }
+.iconic-search-tooltip::first-line {
+	color: var(--text-normal);
+}
+.iconic-search-tooltip {
+	color: var(--interactive-accent);
+}
 .is-mobile .iconic-search-result > * {
 	--icon-size: var(--icon-l);
 	--icon-stroke: var(--icon-l-stroke-width);

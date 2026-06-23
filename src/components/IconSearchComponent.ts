@@ -1,8 +1,8 @@
 import { prepareFuzzySearch, SearchComponent } from 'obsidian';
-import { ICONS, EMOJIS, STRINGS } from 'src/IconicPlugin.js';
+import { ICONS, ICON_KEYWORDS, EMOJIS, EMOJI_KEYWORDS, STRINGS } from 'src/IconicPlugin.js';
 
 type IconSearchModes = { iconMode?: boolean, emojiMode?: boolean };
-export type IconSearchResult = [id: string, name: string, score: number];
+export type IconSearchResult = [id: string, name: string, keywords: string[], score: number];
 
 /**
  * Search field that searches the icon list and passes the results to a callback.
@@ -61,37 +61,63 @@ export default class IconSearchComponent extends SearchComponent {
 		
 		const queryLower = query.toLowerCase();
 		const fuzzySearch = prepareFuzzySearch(query);
-		const iconEntries = [
+		const allIconEntries = [
 			...(this.iconMode ? ICONS : []),
 			...(this.emojiMode ? EMOJIS : []),
 		];
+		const allKeywords = new Set<string>([
+			...(this.iconMode ? ICON_KEYWORDS : []),
+			...(this.emojiMode ? EMOJI_KEYWORDS : []),
+		]);
+		const allKeywordScores = new Map<string, number>();
 		const results: IconSearchResult[] = [];
 
-		for (const [id, [name]] of iconEntries) {
+		for (const keyword of allKeywords) {
+			const score = fuzzySearch(keyword)?.score;
+			if (score) allKeywordScores.set(keyword, score);
+		}
+
+		for (const [id, [name, keywords]] of allIconEntries) {
 			const idLower = id.toLowerCase();
 			const nameLower = name.toLowerCase();
 
 			// Check for an exact ID or name match
 			if (queryLower === idLower || queryLower === nameLower) {
-				results.push([id, name, 1]);
+				results.push([id, name, [], 1]);
 				continue;
 			}
 
 			// Check for a start-of-name match
 			if (nameLower.startsWith(queryLower)) {
-				results.push([id, name, 0]);
+				results.push([id, name, [], 0]);
 				continue;
 			}
 
 			// Check for a fuzzy name match
 			const nameScore = fuzzySearch(name)?.score;
-			if (!nameScore) continue;
 
-			results.push([id, name, nameScore]);
+			// Check for a fuzzy keyword match
+			const keywordScores: [string, number][] = [];
+			for (const keyword of keywords) {
+				const score = allKeywordScores.get(keyword);
+				if (score) keywordScores.push([keyword, score]);
+			}
+
+			// Sort keywords by score
+			keywordScores.sort(([, scoreA], [, scoreB]) => scoreA < scoreB ? 1 : -1);
+			const topKeywordScore = keywordScores[0]?.[1];
+
+			// Skip icon if nothing matched
+			if (nameScore === undefined && topKeywordScore === undefined) continue;
+
+			// Use the best possible score
+			const topKeywords = keywordScores.map(([keyword]) => keyword);
+			const topScore = Math.max(nameScore ?? -Infinity, topKeywordScore ?? -Infinity);
+			results.push([id, name, topKeywords, topScore]);
 		}
 
 		// Sort results by score
-		results.sort(([, nameA, scoreA], [, nameB, scoreB]) => {
+		results.sort(([, nameA,, scoreA], [, nameB,, scoreB]) => {
 			if (scoreA === scoreB) {
 				return nameA.localeCompare(nameB);
 			} else {

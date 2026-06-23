@@ -281,8 +281,8 @@ export default class IconPicker extends Modal {
 				.onSearch((query, results) => {
 					// If query is blank, just show the current icon
 					if (!query && this.icon) {
-						const name = ICONS.get(this.icon) ?? this.icon;
-						void this.resultsSetting.setResults([[this.icon, name, 0]]);
+						const [name] = ICONS.get(this.icon) ?? [this.icon];
+						void this.resultsSetting.setResults([[this.icon, name, [], 0]]);
 						return;
 					}
 					void this.resultsSetting.setResults(results);
@@ -295,18 +295,23 @@ export default class IconPicker extends Modal {
 		this.resultsSetting = new IconSearchResultsSetting(this.contentEl)
 			.setLimit(this.plugin.settings.maxSearchResults)
 			.setColor(this.color ?? null)
-			.forEach((iconButton, [id, name]) => {
+			.forEach((iconButton, [id, name, keywords]) => {
+				const tooltip = name + '\n' + keywords.slice(0, 3).join(' • ');
 				iconButton
 					.onClick(() => this.closeAndSave(id, this.color))
-					.setTooltip(name, {
+					.setTooltip(tooltip, {
 						delay: 300,
 						placement: Platform.isMobile ? 'top' : undefined,
+						classes: ['iconic-search-tooltip'],
 					});
 				// Set long-touch tooltips on mobile
 				if (Platform.isMobile) {
 					iconButton.onSecondaryClick(() => {
 						navigator.vibrate?.(100); // Not supported on iOS
-						iconButton.displayTooltip(name, { placement: 'top' });
+						iconButton.displayTooltip(tooltip, {
+							placement: 'top',
+							classes: ['iconic-search-tooltip'],
+						});
 					});
 				}
 			});
