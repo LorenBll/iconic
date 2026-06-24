@@ -1,5 +1,5 @@
 import { ColorComponent, Menu, displayTooltip, setTooltip } from 'obsidian';
-import ColorUtils from 'src/ColorUtils.js';
+import ColorUtils from 'src/utils/ColorUtils.js';
 import { STRINGS } from 'src/IconicPlugin.js';
 
 export default class IconColorComponent extends ColorComponent {

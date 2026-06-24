@@ -2,7 +2,7 @@ import { Editor, MarkdownView, Menu } from 'obsidian';
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import IconicPlugin, { TagItem, PropertyItem, STRINGS } from 'src/IconicPlugin.js';
-import ColorUtils from 'src/ColorUtils.js';
+import ColorUtils from 'src/utils/ColorUtils.js';
 import IconManager from 'src/managers/IconManager.js';
 import RuleEditor from 'src/dialogs/RuleEditor.js';
 import IconPicker from 'src/dialogs/IconPicker.js';

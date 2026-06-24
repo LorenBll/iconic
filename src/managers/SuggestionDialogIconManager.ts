@@ -1,7 +1,7 @@
 import { Instruction, Plugin, SuggestModal, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import IconicPlugin, { PLUGIN_TAB_TYPES } from 'src/IconicPlugin.js';
 import IconManager from 'src/managers/IconManager.js';
-import ObsidianUtils from 'src/ObsidianUtils.js';
+import ObsidianUtils from 'src/utils/ObsidianUtils.js';
 
 type PluginModal = SuggestModal<unknown> & { plugin: Plugin };
 

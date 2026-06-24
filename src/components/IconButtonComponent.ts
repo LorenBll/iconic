@@ -1,5 +1,5 @@
 import { ExtraButtonComponent, TooltipOptions, displayTooltip, setIcon } from 'obsidian';
-import ColorUtils from 'src/ColorUtils.js';
+import ColorUtils from 'src/utils/ColorUtils.js';
 import { ICONS, EMOJIS } from 'src/IconicPlugin.js';
 
 const DEFAULT_ICON = 'lucide-file';

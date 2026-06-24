@@ -1,7 +1,7 @@
 import { Command, Notice, Platform, Plugin, TAbstractFile, TFile, TFolder, View, WorkspaceFloating, WorkspaceLeaf, WorkspaceRoot, getIconIds, getLanguage, normalizePath } from 'obsidian';
 import IconicSettingTab from 'src/IconicSettingTab.js';
-import ObsidianUtils, { ObsidianBookmark, ObsidianTag, ObsidianProperty, ObsidianRibbonItem } from 'src/ObsidianUtils.js';
-import ResourceUtils from 'src/ResourceUtils.js';
+import ObsidianUtils, { ObsidianBookmark, ObsidianTag, ObsidianProperty, ObsidianRibbonItem } from 'src/utils/ObsidianUtils.js';
+import ResourceUtils from 'src/utils/ResourceUtils.js';
 import MenuManager from 'src/managers/MenuManager.js';
 import RuleManager, { RuleTrigger } from 'src/managers/RuleManager.js';
 import IconManager from 'src/managers/IconManager.js';

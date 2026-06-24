@@ -1,7 +1,7 @@
 import { AbstractInputSuggest, EditorSuggest, TFile } from 'obsidian';
 import IconicPlugin from 'src/IconicPlugin.js';
 import IconManager from 'src/managers/IconManager.js';
-import ObsidianUtils from 'src/ObsidianUtils.js';
+import ObsidianUtils from 'src/utils/ObsidianUtils.js';
 
 const FILE_SUGGESTION = 'file';
 const TAG_SUGGESTION = 'tag';

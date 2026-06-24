@@ -1,5 +1,5 @@
 import { BaseComponent } from 'obsidian';
-import ColorUtils from 'src/ColorUtils.js';
+import ColorUtils from 'src/utils/ColorUtils.js';
 import IconButtonComponent from 'src/components/IconButtonComponent.js';
 
 export default class CalloutComponent extends BaseComponent {

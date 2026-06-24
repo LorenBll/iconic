@@ -1,6 +1,6 @@
 import { Menu, Platform } from 'obsidian';
 import IconicPlugin, { STRINGS, AppItemId } from 'src/IconicPlugin.js';
-import ColorUtils from 'src/ColorUtils.js';
+import ColorUtils from 'src/utils/ColorUtils.js';
 import IconManager from 'src/managers/IconManager.js';
 import IconPicker from 'src/dialogs/IconPicker.js';
 

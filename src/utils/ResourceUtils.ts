@@ -1,4 +1,4 @@
-import ObsidianUtils from 'src/ObsidianUtils.js';
+import ObsidianUtils from 'src/utils/ObsidianUtils.js';
 import DEFAULT_STRINGS from 'i18n/en.json';
 import LUCIDE_NAMES from 'res/lucide-names.json';
 

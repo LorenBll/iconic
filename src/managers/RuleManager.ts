@@ -1,6 +1,6 @@
 import { TFile } from 'obsidian';
 import IconicPlugin, { Category, Item, FileItem, ICONS, EMOJIS, STRINGS } from 'src/IconicPlugin.js';
-import ObsidianUtils from 'src/ObsidianUtils.js';
+import ObsidianUtils from 'src/utils/ObsidianUtils.js';
 
 const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
