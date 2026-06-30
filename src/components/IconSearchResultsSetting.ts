@@ -16,16 +16,6 @@ export default class IconSearchResultsSetting extends Setting {
 		this.setClass('iconic-search-results');
 		this.settingEl.tabIndex = 0;
 		this.infoEl.remove();
-
-		// Translate vertical scrolling into horizontal
-		this.settingEl.addEventListener('wheel', event => {
-			const bodyEl = this.settingEl.doc.body;
-			if (bodyEl.hasClass('mod-rtl')) {
-				this.settingEl.scrollLeft -= event.deltaY;
-			} else {
-				this.settingEl.scrollLeft += event.deltaY;
-			}
-		}, { passive: true });
 	}
 
 	/**

@@ -308,7 +308,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			.setName(STRINGS.settings.maxSearchResults.name)
 			.setDesc(STRINGS.settings.maxSearchResults.desc)
 			.addSlider(slider => { slider
-				.setLimits(10, 300, 10)
+				.setLimits(50, 500, 10)
 				.setValue(this.plugin.settings.maxSearchResults)
 				.setDynamicTooltip()
 				.onChange(value => {

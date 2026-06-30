@@ -254,9 +254,11 @@ a.tag {
 
 /* Search results container */
 .iconic-search-results {
-	overflow-x: scroll;
+	height: calc(((var(--icon-xl) + var(--size-4-2)) * 6) + var(--size-4-4));
+	overflow-y: auto;
 }
 .iconic-search-results > .setting-item-control {
+	flex-wrap: wrap;
 	justify-content: center;
 }
 .iconic-search-results:focus-visible {

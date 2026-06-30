@@ -159,7 +159,7 @@ const DEFAULT_SETTINGS: IconicSettings = {
 	showMoveFileIcons: true,
 	showItemName: 'desktop',
 	biggerSearchResults: 'mobile',
-	maxSearchResults: 50,
+	maxSearchResults: 100,
 	colorPicker1: 'list',
 	colorPicker2: 'rgb',
 	uncolorHover: false,
