@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "Перемкнути значки автозаповнення",
 		"toggleQuickSwitcherIcons": "Перемкнути значки швидкий перехід",
 		"toggleMoveFileIcons": "Перемкнути значки «Перемістити файл»",
-		"toggleBiggerSearchResults": "Перемкнути більші результати пошуку",
 		"changeIconCurrentFile": "Змінити значок поточного файлу"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "Показати назву елемента",
 			"desc": "Показувати назву елементу, що редагується."
-		},
-		"biggerSearchResults": {
-			"name": "Більші результати пошуку",
-			"desc": "Показати більші значки в результатах пошуку."
 		},
 		"useSearchKeywords": {
 			"name": "Використовуйте ключові слова для пошуку",

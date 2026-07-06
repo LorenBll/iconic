@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "تبديل أيقونات الاقتراحات",
 		"toggleQuickSwitcherIcons": "تبديل أيقونات الانتقال السريع",
 		"toggleMoveFileIcons": "تبديل أيقونات \"نقل الملف\"",
-		"toggleBiggerSearchResults": "تبديل نتائج البحث الأكبر",
 		"changeIconCurrentFile": "تغيير أيقونة الملف الحالي"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "إظهار اسم العنصر",
 			"desc": "إظهار اسم العنصر الذي يتم تحريره."
-		},
-		"biggerSearchResults": {
-			"name": "نتائج بحث أكبر",
-			"desc": "إظهار أيقونات أكبر في نتائج البحث."
 		},
 		"useSearchKeywords": {
 			"name": "استخدام كلمات البحث",

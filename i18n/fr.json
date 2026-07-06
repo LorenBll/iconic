@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "Basculer les icônes des suggestions",
 		"toggleQuickSwitcherIcons": "Basculer les icônes de sélecteur rapide",
 		"toggleMoveFileIcons": "Basculer les icônes de « Déplacer le fichier »",
-		"toggleBiggerSearchResults": "Basculer les résultats de recherche plus grands",
 		"changeIconCurrentFile": "Changer l'icône du fichier actuel"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "Afficher le nom de l'élément",
 			"desc": "Afficher le nom de l'élément en cours de modification."
-		},
-		"biggerSearchResults": {
-			"name": "Résultats de recherche plus grands.",
-			"desc": "Afficher des icônes plus grandes dans les résultats de recherche."
 		},
 		"useSearchKeywords": {
 			"name": "Utiliser des mots clés de recherche",

@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "サジェストアイコンをトグル",
 		"toggleQuickSwitcherIcons": "クイックスイッチャーアイコンをトグル",
 		"toggleMoveFileIcons": "「ファイルを移動」のアイコンをトグル",
-		"toggleBiggerSearchResults": "検索結果を大きくトグルする",
 		"changeIconCurrentFile": "現在のファイルのアイコンを変更する"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "アイテム名を表示します",
 			"desc": "編集中のアイテムの名前を表示します。"
-		},
-		"biggerSearchResults": {
-			"name": "検索結果を大きくする",
-			"desc": "検索結果に大きいアイコンを表示します。"
 		},
 		"useSearchKeywords": {
 			"name": "検索キーワードを使用する",

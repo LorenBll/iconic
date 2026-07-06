@@ -95,7 +95,6 @@ interface IconicSettings {
 	showQuickSwitcherIcons: boolean;
 	showMoveFileIcons: boolean;
 	showItemName: string;
-	biggerSearchResults: string;
 	useSearchKeywords: string;
 	maxSearchResults: number;
 	colorPicker1: string;
@@ -159,7 +158,6 @@ const DEFAULT_SETTINGS: IconicSettings = {
 	showQuickSwitcherIcons: true,
 	showMoveFileIcons: true,
 	showItemName: 'desktop',
-	biggerSearchResults: 'mobile',
 	useSearchKeywords: 'on',
 	maxSearchResults: 100,
 	colorPicker1: 'list',
@@ -433,27 +431,6 @@ export default class IconicPlugin extends Plugin {
 			}
 		});
 
-		// COMMAND: Toggle bigger search results
-		this.dialogCommands.push(this.addCommand({
-			id: 'toggle-bigger-search-results',
-			name: STRINGS.commands.toggleBiggerSearchResults,
-			callback: () => {
-				if (Platform.isDesktop) {
-					if (this.settings.biggerSearchResults === 'on') this.settings.biggerSearchResults = 'mobile';
-					else if (this.settings.biggerSearchResults === 'desktop') this.settings.biggerSearchResults = 'off';
-					else if (this.settings.biggerSearchResults === 'mobile') this.settings.biggerSearchResults = 'on';
-					else if (this.settings.biggerSearchResults === 'off') this.settings.biggerSearchResults = 'desktop';
-				} else {
-					if (this.settings.biggerSearchResults === 'on') this.settings.biggerSearchResults = 'desktop';
-					else if (this.settings.biggerSearchResults === 'desktop') this.settings.biggerSearchResults = 'on';
-					else if (this.settings.biggerSearchResults === 'mobile') this.settings.biggerSearchResults = 'off';
-					else if (this.settings.biggerSearchResults === 'off') this.settings.biggerSearchResults = 'mobile';
-				}
-				void this.saveSettings();
-				this.refreshBody();
-			}
-		}));
-
 		// COMMAND: Change icon of the current file
 		this.addCommand({
 			id: 'change-icon-current-file',
@@ -573,7 +550,6 @@ export default class IconicPlugin extends Plugin {
 			bodyEl.toggleClass('iconic-bigger-icons', unloading ? false : this.isSettingEnabled('biggerIcons'));
 			bodyEl.toggleClass('iconic-clickable-icons', unloading ? false : this.isSettingEnabled('clickableIcons'));
 			bodyEl.toggleClass('iconic-markdown-tab-icons', unloading ? false : this.settings.showMarkdownTabIcons);
-			bodyEl.toggleClass('iconic-bigger-search-results', unloading ? false : this.isSettingEnabled('biggerSearchResults'));
 			bodyEl.toggleClass('iconic-uncolor-hover', unloading ? false : this.settings.uncolorHover);
 			bodyEl.toggleClass('iconic-uncolor-drag', unloading ? false : this.settings.uncolorDrag);
 			bodyEl.toggleClass('iconic-uncolor-select', unloading ? false : this.settings.uncolorSelect);

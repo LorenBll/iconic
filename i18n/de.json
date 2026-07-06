@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "Vorschlagsymbole umschalten",
 		"toggleQuickSwitcherIcons": "Schnellauswahlsymbole umschalten",
 		"toggleMoveFileIcons": "\"Datei verschieben\"-Symbole umschalten",
-		"toggleBiggerSearchResults": "Größere Suchergebnisse umschalten",
 		"changeIconCurrentFile": "Symbol der aktuellen Datei ändern"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "Elementnamen anzeigen",
 			"desc": "Den Namen des bearbeiteten Elements anzeigen."
-		},
-		"biggerSearchResults": {
-			"name": "Größere Suchergebnisse",
-			"desc": "Größere Symbole in Suchergebnissen anzeigen."
 		},
 		"useSearchKeywords": {
 			"name": "Suchbegriffe verwenden",

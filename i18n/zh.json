@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "切换建议图标",
 		"toggleQuickSwitcherIcons": "切换快速切换图标",
 		"toggleMoveFileIcons": "切换「将文件移动」图标",
-		"toggleBiggerSearchResults": "切换更大的搜索结果",
 		"changeIconCurrentFile": "更改当前文件的图标"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "显示项目名称",
 			"desc": "显示正在编辑的项目的名称。"
-		},
-		"biggerSearchResults": {
-			"name": "更大的搜索结果",
-			"desc": "在搜索结果中显示更大的图标。"
 		},
 		"useSearchKeywords": {
 			"name": "使用搜索关键词",

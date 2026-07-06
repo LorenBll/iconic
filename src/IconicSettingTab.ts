@@ -14,7 +14,6 @@ export default class IconicSettingTab extends PluginSettingTab {
 	private biggerIconsIndicator?: ExtraButtonComponent;
 	private showItemNameIndicator?: ExtraButtonComponent;
 	private clickableIconsIndicator?: ExtraButtonComponent;
-	private biggerSearchResultsIndicator?: ExtraButtonComponent;
 	private useSearchKeywordsIndicator?: ExtraButtonComponent;
 	private colorPickerIndicator1?: ExtraButtonComponent;
 	private colorPickerIndicator2?: ExtraButtonComponent;
@@ -278,30 +277,6 @@ export default class IconicSettingTab extends PluginSettingTab {
 				});
 				this.refreshIndicator(this.showItemNameIndicator, dropdown.getValue());
 			})
-		});
-
-		// SETTING: Bigger search results
-		groupIconPicker.addSetting(setting => { setting
-			.setName(STRINGS.settings.biggerSearchResults.name)
-			.setDesc(STRINGS.settings.biggerSearchResults.desc)
-			.addExtraButton(indicator => {
-				indicator.extraSettingsEl.addClass('iconic-indicator');
-				this.biggerSearchResultsIndicator = indicator;
-			})
-			.addDropdown(dropdown => { dropdown
-				.addOption('on', STRINGS.settings.values.on)
-				.addOption('desktop', STRINGS.settings.values.desktop)
-				.addOption('mobile', STRINGS.settings.values.mobile)
-				.addOption('off', STRINGS.settings.values.off)
-				.setValue(this.plugin.settings.biggerSearchResults)
-				.onChange(value => {
-					this.refreshIndicator(this.biggerSearchResultsIndicator, value);
-					this.plugin.settings.biggerSearchResults = value;
-					void this.plugin.saveSettings();
-					this.plugin.refreshBody();
-				});
-				this.refreshIndicator(this.biggerSearchResultsIndicator, dropdown.getValue());
-			});
 		});
 
 		// SETTING: Use search keywords

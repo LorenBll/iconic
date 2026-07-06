@@ -297,7 +297,6 @@
 		"toggleSuggestionIcons": "Beralih ikon saran",
 		"toggleQuickSwitcherIcons": "Beralih ikon peralih cepat",
 		"toggleMoveFileIcons": "Beralih ikon “Pindahkan berkas”",
-		"toggleBiggerSearchResults": "Beralih hasil pencarian yang lebih besar",
 		"changeIconCurrentFile": "Ubah ikon file saat ini"
 	},
 	"settings": {
@@ -372,10 +371,6 @@
 		"showItemName": {
 			"name": "Tampilkan nama item",
 			"desc": "Tampilkan nama item yang sedang diedit."
-		},
-		"biggerSearchResults": {
-			"name": "Hasil pencarian yang lebih besar",
-			"desc": "Tampilkan ikon yang lebih besar dalam hasil pencarian."
 		},
 		"useSearchKeywords": {
 			"name": "Gunakan kata kunci pencarian",
