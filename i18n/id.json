@@ -377,6 +377,10 @@
 			"name": "Hasil pencarian yang lebih besar",
 			"desc": "Tampilkan ikon yang lebih besar dalam hasil pencarian."
 		},
+		"useSearchKeywords": {
+			"name": "Gunakan kata kunci pencarian",
+			"desc": "Cari ikon menggunakan kata-kata deskriptif seperti “food” atau “music”."
+		},
 		"maxSearchResults": {
 			"name": "Hasil pencarian maksimal",
 			"desc": "Pilih berapa banyak ikon yang akan ditampilkan sekaligus."

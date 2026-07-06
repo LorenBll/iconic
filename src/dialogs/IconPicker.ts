@@ -330,7 +330,11 @@ export default class IconPicker extends Modal {
 		} else if (!dialogState.iconMode && !dialogState.emojiMode) {
 			dialogState.iconMode = true;
 		}
-		this.searchField.setModes(dialogState);
+		this.searchField.setModes({
+			iconMode: dialogState.iconMode,
+			emojiMode: dialogState.emojiMode,
+			keywordMode: this.plugin.isSettingEnabled('useSearchKeywords'),
+		});
 
 		// Match styling of bookmark edit dialog
 		const buttonContainerEl = this.modalEl.createDiv({ cls: 'modal-button-container' });

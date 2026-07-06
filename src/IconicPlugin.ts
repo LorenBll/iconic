@@ -96,6 +96,7 @@ interface IconicSettings {
 	showMoveFileIcons: boolean;
 	showItemName: string;
 	biggerSearchResults: string;
+	useSearchKeywords: string;
 	maxSearchResults: number;
 	colorPicker1: string;
 	colorPicker2: string;
@@ -159,6 +160,7 @@ const DEFAULT_SETTINGS: IconicSettings = {
 	showMoveFileIcons: true,
 	showItemName: 'desktop',
 	biggerSearchResults: 'mobile',
+	useSearchKeywords: 'on',
 	maxSearchResults: 100,
 	colorPicker1: 'list',
 	colorPicker2: 'rgb',

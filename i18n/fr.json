@@ -377,6 +377,10 @@
 			"name": "Résultats de recherche plus grands.",
 			"desc": "Afficher des icônes plus grandes dans les résultats de recherche."
 		},
+		"useSearchKeywords": {
+			"name": "Utiliser des mots clés de recherche",
+			"desc": "Rechercher des icônes à l'aide de mots descriptifs comme « food » ou « music »."
+		},
 		"maxSearchResults": {
 			"name": "Résultats de recherche maximaux",
 			"desc": "Choisissez le nombre d'icônes à afficher simultanément."

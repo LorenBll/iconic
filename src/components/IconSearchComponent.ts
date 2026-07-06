@@ -1,7 +1,7 @@
 import { prepareFuzzySearch, SearchComponent } from 'obsidian';
 import { ICONS, ICON_KEYWORDS, EMOJIS, EMOJI_KEYWORDS, STRINGS } from 'src/IconicPlugin.js';
 
-type IconSearchModes = { iconMode?: boolean, emojiMode?: boolean };
+type IconSearchModes = { iconMode?: boolean, emojiMode?: boolean, keywordMode?: boolean };
 export type IconSearchResult = [id: string, name: string, keywords: string[], score: number];
 
 /**
@@ -10,6 +10,7 @@ export type IconSearchResult = [id: string, name: string, keywords: string[], sc
 export default class IconSearchComponent extends SearchComponent {
 	private iconMode = true;
 	private emojiMode = false;
+	private keywordMode = true;
 	private searchCallback: ((query: string, results: IconSearchResult[]) => void) | null = null;
 
 	constructor(containerEl: HTMLElement) {
@@ -21,9 +22,10 @@ export default class IconSearchComponent extends SearchComponent {
 	 * Enable or disable icon & emoji results.
 	 */
 	setModes(modes: IconSearchModes): this {
-		const { iconMode, emojiMode } = modes;
+		const { iconMode, emojiMode, keywordMode } = modes;
 		if (iconMode !== undefined) this.iconMode = iconMode;
 		if (emojiMode !== undefined) this.emojiMode = emojiMode;
+		if (keywordMode !== undefined) this.keywordMode = keywordMode;
 		this.updatePlaceholder();
 		void this.dispatchResults();
 		return this;
@@ -72,9 +74,11 @@ export default class IconSearchComponent extends SearchComponent {
 		const allKeywordScores = new Map<string, number>();
 		const results: IconSearchResult[] = [];
 
-		for (const keyword of allKeywords) {
-			const score = fuzzySearch(keyword)?.score;
-			if (score) allKeywordScores.set(keyword, score);
+		if (this.keywordMode) {
+			for (const keyword of allKeywords) {
+				const score = fuzzySearch(keyword)?.score;
+				if (score) allKeywordScores.set(keyword, score);
+			}
 		}
 
 		for (const [id, [name, keywords]] of allIconEntries) {
@@ -95,6 +99,10 @@ export default class IconSearchComponent extends SearchComponent {
 
 			// Check for a fuzzy name match
 			const nameScore = fuzzySearch(name)?.score;
+			if (!this.keywordMode) {
+				if (nameScore) results.push([id, name, [], nameScore]);
+				continue;
+			}
 
 			// Check for a fuzzy keyword match
 			const keywordScores: [string, number][] = [];

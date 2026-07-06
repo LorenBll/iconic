@@ -377,6 +377,10 @@
 			"name": "Bigger search results",
 			"desc": "Show bigger icons in search results."
 		},
+		"useSearchKeywords": {
+			"name": "Use search keywords",
+			"desc": "Search for icons using descriptive words like “food” or “music”."
+		},
 		"maxSearchResults": {
 			"name": "Maximum search results",
 			"desc": "Choose how many icons to show at once."
