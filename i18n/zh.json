@@ -296,7 +296,7 @@
 		"toggleMenuActions": "切换菜单操作",
 		"toggleSuggestionIcons": "切换建议图标",
 		"toggleQuickSwitcherIcons": "切换快速切换图标",
-		"toggleMoveFileIcons": "切换\"将文件移动\"图标",
+		"toggleMoveFileIcons": "切换「将文件移动」图标",
 		"toggleBiggerSearchResults": "切换更大的搜索结果",
 		"changeIconCurrentFile": "更改当前文件的图标"
 	},
@@ -365,8 +365,8 @@
 			"desc": "在快速切换器的搜索结果中显示图标。"
 		},
 		"showMoveFileIcons": {
-			"name": "显示\"将文件移动\"图标",
-			"desc": "在\"将文件移动\"对话框中显示文件夹图标"
+			"name": "显示「将文件移动」图标",
+			"desc": "在「将文件移动」对话框中显示文件夹图标"
 		},
 		"headingIconPicker": "图标选择器",
 		"showItemName": {

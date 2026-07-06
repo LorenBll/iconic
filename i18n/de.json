@@ -365,8 +365,8 @@
 			"desc": "Symbole in den Suchergebnissen von Schnellauswahl anzeigen."
 		},
 		"showMoveFileIcons": {
-			"name": "\"Datei verschieben\"-Symbole anzeigen",
-			"desc": "Ordnersymbole in \"Datei verschieben\"-Dialogen anzeigen."
+			"name": "„Datei verschieben“-Symbole anzeigen",
+			"desc": "Ordnersymbole in „Datei verschieben“-Dialogen anzeigen."
 		},
 		"headingIconPicker": "Symbolauswahl",
 		"showItemName": {

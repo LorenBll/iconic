@@ -296,7 +296,7 @@
 		"toggleMenuActions": "Beralih tindakan menu",
 		"toggleSuggestionIcons": "Beralih ikon saran",
 		"toggleQuickSwitcherIcons": "Beralih ikon peralih cepat",
-		"toggleMoveFileIcons": "Beralih ikon \"Pindahkan berkas\"",
+		"toggleMoveFileIcons": "Beralih ikon “Pindahkan berkas”",
 		"toggleBiggerSearchResults": "Beralih hasil pencarian yang lebih besar",
 		"changeIconCurrentFile": "Ubah ikon file saat ini"
 	},
@@ -365,8 +365,8 @@
 			"desc": "Tampilkan ikon dalam hasil pencarian peralih cepat."
 		},
 		"showMoveFileIcons": {
-			"name": "Tampilkan ikon \"Pindahkan berkas\"",
-			"desc": "Tampilkan ikon folder di dialog \"Pindahkan berkas\"."
+			"name": "Tampilkan ikon “Pindahkan berkas”",
+			"desc": "Tampilkan ikon folder di dialog “Pindahkan berkas”."
 		},
 		"headingIconPicker": "Pemilih ikon",
 		"showItemName": {

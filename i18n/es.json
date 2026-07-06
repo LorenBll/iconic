@@ -296,7 +296,7 @@
 		"toggleMenuActions": "Alternar acciones de menú",
 		"toggleSuggestionIcons": "Alternar íconos de sugerencias",
 		"toggleQuickSwitcherIcons": "Alternar íconos de selector rápido",
-		"toggleMoveFileIcons": "Alternar los íconos de \"Mover archivo\"",
+		"toggleMoveFileIcons": "Alternar los íconos de “Mover archivo”",
 		"toggleBiggerSearchResults": "Alternar resultados de búsqueda más grandes",
 		"changeIconCurrentFile": "Cambiar el ícono del archivo actual"
 	},
@@ -365,8 +365,8 @@
 			"desc": "Mostrar íconos en los resultados de búsqueda de los selectores rápidos."
 		},
 		"showMoveFileIcons": {
-			"name": "Mostrar los íconos de \"Mover archivo\"",
-			"desc": "Mostrar los íconos de carpetas en los diálogos de \"Mover archivo\"."
+			"name": "Mostrar los íconos de “Mover archivo”",
+			"desc": "Mostrar los íconos de carpetas en los diálogos de “Mover archivo”."
 		},
 		"headingIconPicker": "Selector de íconos",
 		"showItemName": {

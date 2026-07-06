@@ -296,7 +296,7 @@
 		"toggleMenuActions": "Basculer les actions du menu",
 		"toggleSuggestionIcons": "Basculer les icônes des suggestions",
 		"toggleQuickSwitcherIcons": "Basculer les icônes de sélecteur rapide",
-		"toggleMoveFileIcons": "Basculer les icônes de \"Déplacer le fichier\"",
+		"toggleMoveFileIcons": "Basculer les icônes de « Déplacer le fichier »",
 		"toggleBiggerSearchResults": "Basculer les résultats de recherche plus grands",
 		"changeIconCurrentFile": "Changer l'icône du fichier actuel"
 	},
@@ -349,7 +349,7 @@
 		},
 		"showTagPillIcons": {
 			"name": "Afficher les icônes des pastilles de mots-clé",
-			"desc": "Afficher les icônes dans les #mots-clés et la propriété \"tags\"."
+			"desc": "Afficher les icônes dans les #mots-clés et la propriété « tags »."
 		},
 		"headingMenusAndDialogs": "Menus et boîtes de dialogue",
 		"showMenuActions": {
@@ -365,8 +365,8 @@
 			"desc": "Afficher les icônes dans les résultats de recherche des sélecteurs rapides."
 		},
 		"showMoveFileIcons": {
-			"name": "Afficher les icônes de \"Déplacer le fichier\"",
-			"desc": "Afficher les icônes des dossiers dans les boîtes de dialogue \"Déplacer le fichier\"."
+			"name": "Afficher les icônes de « Déplacer le fichier »",
+			"desc": "Afficher les icônes des dossiers dans les boîtes de dialogue « Déplacer le fichier »."
 		},
 		"headingIconPicker": "Sélecteur d'icônes",
 		"showItemName": {

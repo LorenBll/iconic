@@ -296,7 +296,7 @@
 		"toggleMenuActions": "Toggle menu actions",
 		"toggleSuggestionIcons": "Toggle suggestion icons",
 		"toggleQuickSwitcherIcons": "Toggle quick switcher icons",
-		"toggleMoveFileIcons": "Toggle \"Move file\" dialog icons",
+		"toggleMoveFileIcons": "Toggle “Move file” dialog icons",
 		"toggleBiggerSearchResults": "Toggle bigger search results",
 		"changeIconCurrentFile": "Change icon of the current file"
 	},
@@ -365,8 +365,8 @@
 			"desc": "Show icons in search results of quick switchers."
 		},
 		"showMoveFileIcons": {
-			"name": "Show \"Move file\" icons",
-			"desc": "Show folder icons in \"Move file\" dialogs."
+			"name": "Show “Move file” icons",
+			"desc": "Show folder icons in “Move file” dialogs."
 		},
 		"headingIconPicker": "Icon picker",
 		"showItemName": {
