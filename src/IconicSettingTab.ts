@@ -1,4 +1,4 @@
-import { ExtraButtonComponent, Platform, PluginSettingTab, SettingGroup } from 'obsidian';
+import { ExtraButtonComponent, Platform, PluginSettingTab, SettingDefinitionGroup, SettingDefinitionItem, SettingGroup } from 'obsidian';
 import IconicPlugin, { FileItem, STRINGS } from 'src/IconicPlugin.js';
 import RulePicker from 'src/dialogs/RulePicker.js';
 import UsageChecker from 'src/dialogs/UsageChecker.js';
@@ -26,13 +26,529 @@ export default class IconicSettingTab extends PluginSettingTab {
 	/**
 	 * @override
 	 */
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		// GROUP: Top
+		const groupTop: SettingDefinitionGroup = { type: 'group', items: [] };
+
+		// SETTING: Rules
+		groupTop.items?.push({
+			name: STRINGS.settings.rulebook.name,
+			desc: STRINGS.settings.rulebook.desc,
+			render: setting => { setting
+				.addButton(button => { button
+				.setButtonText(STRINGS.settings.manage)
+				.onClick(() => {
+					// Silently no-op if rulebook hasn't finished loading
+					if (!this.plugin.ruleManager) return;
+						// @ts-expect-error (Private API)
+						this.app.setting.close();
+						RulePicker.open(this.plugin);
+					});
+				});
+			},
+		});
+
+		// SETTING: Bigger icons
+		groupTop.items?.push({
+			name: STRINGS.settings.biggerIcons.name,
+			desc: STRINGS.settings.biggerIcons.desc,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.biggerIconsIndicator = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({ 
+						on: STRINGS.settings.values.on,
+						desktop: STRINGS.settings.values.desktop,
+						mobile: STRINGS.settings.values.mobile,
+						off: STRINGS.settings.values.off,
+					})
+					.setValue(this.plugin.settings.biggerIcons)
+					.onChange(value => {
+						this.refreshIndicator(this.biggerIconsIndicator, value);
+						this.plugin.settings.biggerIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+					this.refreshIndicator(this.biggerIconsIndicator, dropdown.getValue());
+				});
+			},
+		});
+
+		// SETTING: Clickable icons
+		groupTop.items?.push({
+			name: Platform.isDesktop
+				? STRINGS.settings.clickableIcons.nameDesktop
+				: STRINGS.settings.clickableIcons.nameMobile,
+			desc: Platform.isDesktop
+				? STRINGS.settings.clickableIcons.descDesktop
+				: STRINGS.settings.clickableIcons.descMobile,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.clickableIconsIndicator = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({ 
+						on: STRINGS.settings.values.on,
+						desktop: STRINGS.settings.values.desktop,
+						mobile: STRINGS.settings.values.mobile,
+						off: STRINGS.settings.values.off,
+					})
+					.setValue(this.plugin.settings.clickableIcons)
+					.onChange(value => {
+						this.refreshIndicator(this.clickableIconsIndicator, value);
+						this.plugin.settings.clickableIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers();
+						this.plugin.refreshBody();
+					});
+					this.refreshIndicator(this.clickableIconsIndicator, dropdown.getValue());
+				});
+			},
+		});
+
+		// GROUP: Sidebars & tabs
+		const groupSidebarsAndTabs: SettingDefinitionGroup = {
+			type: 'group',
+			heading: STRINGS.settings.headingSidebarsAndTabs,
+			items: [],
+		};
+
+		// SETTING: Show all file icons
+		groupSidebarsAndTabs.items?.push({
+			name: STRINGS.settings.showAllFileIcons.name,
+			desc: STRINGS.settings.showAllFileIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showAllFileIcons)
+					.onChange(value => {
+						this.plugin.settings.showAllFileIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers('file');
+					});
+				});
+			},
+		});
+
+		// SETTING: Minimal folder icons
+		groupSidebarsAndTabs.items?.push({
+			name: STRINGS.settings.minimalFolderIcons.name,
+			desc: STRINGS.settings.minimalFolderIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.minimalFolderIcons)
+					.onChange(value => {
+						this.plugin.settings.minimalFolderIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers('folder');
+					});
+				});
+			},
+		});
+
+		// SETTING: Show Markdown tab icons
+		groupSidebarsAndTabs.items?.push({
+			name: STRINGS.settings.showMarkdownTabIcons.name,
+			desc: STRINGS.settings.showMarkdownTabIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showMarkdownTabIcons)
+					.onChange(value => {
+						this.plugin.settings.showMarkdownTabIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+				});
+			},
+		});
+
+		// GROUP: Editor
+		const groupEditor: SettingDefinitionGroup = {
+			type: 'group',
+			heading: STRINGS.settings.headingEditor,
+			items: [],
+		};
+
+		// SETTING: Show title icons
+		groupEditor.items?.push({
+			name: STRINGS.settings.showTitleIcons.name,
+			desc: STRINGS.settings.showTitleIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showTitleIcons)
+					.onChange(value => {
+						this.plugin.settings.showTitleIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers('file');
+					});
+				});
+			},
+		});
+
+		// SETTING: Show tag pill icons
+		groupEditor.items?.push({
+			name: STRINGS.settings.showTagPillIcons.name,
+			desc: STRINGS.settings.showTagPillIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showTagPillIcons)
+					.onChange(value => {
+						this.plugin.settings.showTagPillIcons = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers('tag');
+					});
+				});
+			},
+		});
+
+		// GROUP: Menus & dialogs
+		const groupMenusAndDialogs: SettingDefinitionGroup = {
+			type: 'group',
+			heading: STRINGS.settings.headingMenusAndDialogs,
+			items: [],
+		};
+
+		// SETTING: Show menu actions
+		groupMenusAndDialogs.items?.push({
+			name: STRINGS.settings.showMenuActions.name,
+			desc: STRINGS.settings.showMenuActions.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showMenuActions)
+					.onChange(value => {
+						this.plugin.settings.showMenuActions = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers();
+					});
+				});
+			},
+		});
+
+		// SETTING: Show suggestion icons
+		groupMenusAndDialogs.items?.push({
+			name: STRINGS.settings.showSuggestionIcons.name,
+			desc: STRINGS.settings.showSuggestionIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showSuggestionIcons)
+					.onChange(value => {
+						this.plugin.settings.showSuggestionIcons = value;
+						void this.plugin.saveSettings();
+					});
+				});
+			},
+		});
+
+		// SETTING: Show quick switcher icons
+		groupMenusAndDialogs.items?.push({
+			name: STRINGS.settings.showQuickSwitcherIcons.name,
+			desc: STRINGS.settings.showQuickSwitcherIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showQuickSwitcherIcons)
+					.onChange(value => {
+						this.plugin.settings.showQuickSwitcherIcons = value;
+						void this.plugin.saveSettings();
+					});
+				});
+			},
+		});
+
+		// SETTING: Show “Move file” dialog icons
+		groupMenusAndDialogs.items?.push({
+			name: STRINGS.settings.showMoveFileIcons.name,
+			desc: STRINGS.settings.showMoveFileIcons.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.showMoveFileIcons)
+					.onChange(value => {
+						this.plugin.settings.showMoveFileIcons = value;
+						void this.plugin.saveSettings();
+					});
+				});
+			},
+		});
+
+		// GROUP: Icon picker
+		const groupIconPicker: SettingDefinitionGroup = {
+			type: 'group',
+			heading: STRINGS.settings.headingIconPicker,
+			items: [],
+		};
+
+		// SETTING: Show item name
+		groupIconPicker.items?.push({
+			name: STRINGS.settings.showItemName.name,
+			desc: STRINGS.settings.showItemName.desc,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.showItemNameIndicator = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({
+						on: STRINGS.settings.values.on,
+						desktop: STRINGS.settings.values.desktop,
+						mobile: STRINGS.settings.values.mobile,
+						off: STRINGS.settings.values.off,
+					})
+					.setValue(this.plugin.settings.showItemName)
+					.onChange(value => {
+						this.refreshIndicator(this.showItemNameIndicator, value);
+						this.plugin.settings.showItemName = value;
+						void this.plugin.saveSettings();
+					});
+					this.refreshIndicator(this.showItemNameIndicator, dropdown.getValue());
+				});
+			},
+		});
+
+		// SETTING: Use search keywords
+		groupIconPicker.items?.push({
+			name: STRINGS.settings.useSearchKeywords.name,
+			desc: STRINGS.settings.useSearchKeywords.desc,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.useSearchKeywordsIndicator = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({
+						on: STRINGS.settings.values.on,
+						desktop: STRINGS.settings.values.desktop,
+						mobile: STRINGS.settings.values.mobile,
+						off: STRINGS.settings.values.off,
+					})
+					.setValue(this.plugin.settings.useSearchKeywords)
+					.onChange(value => {
+						this.refreshIndicator(this.useSearchKeywordsIndicator, value);
+						this.plugin.settings.useSearchKeywords = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+					this.refreshIndicator(this.useSearchKeywordsIndicator, dropdown.getValue());
+				});
+			},
+		});
+
+		// SETTING: Maximum search results
+		groupIconPicker.items?.push({
+			name: STRINGS.settings.maxSearchResults.name,
+			desc: STRINGS.settings.maxSearchResults.desc,
+			control: {
+				type: 'slider', 
+				key: 'maxSearchResults',
+				min: 50,
+				max: 300,
+				step: 10,
+			},
+		});
+
+		// SETTING: Main color picker
+		groupIconPicker.items?.push({
+			name: STRINGS.settings.colorPicker1.name,
+			desc: Platform.isDesktop
+				? STRINGS.settings.colorPicker1.descDesktop
+				: STRINGS.settings.colorPicker1.descMobile,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.colorPickerIndicator1 = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({
+						list: STRINGS.settings.values.list,
+						rgb: STRINGS.settings.values.rgb,
+					})
+					.setValue(this.plugin.settings.colorPicker1)
+					.onChange(value => {
+						this.refreshIndicator(this.colorPickerIndicator1, value);
+						this.plugin.settings.colorPicker1 = value;
+						void this.plugin.saveSettings();
+					});
+					this.refreshIndicator(this.colorPickerIndicator1, dropdown.getValue());
+				});
+			},
+		});
+
+		// SETTING: Second color picker
+		groupIconPicker.items?.push({
+			name: STRINGS.settings.colorPicker2.name,
+			desc: Platform.isDesktop
+				? STRINGS.settings.colorPicker2.descDesktop
+				: STRINGS.settings.colorPicker2.descMobile,
+			render: setting => { setting
+				.addExtraButton(indicator => {
+					indicator.extraSettingsEl.addClass('iconic-indicator');
+					this.colorPickerIndicator2 = indicator;
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({
+						list: STRINGS.settings.values.list,
+						rgb: STRINGS.settings.values.rgb,
+					})
+					.setValue(this.plugin.settings.colorPicker2)
+					.onChange(value => {
+						this.refreshIndicator(this.colorPickerIndicator2, value);
+						this.plugin.settings.colorPicker2 = value;
+						void this.plugin.saveSettings();
+					});
+					this.refreshIndicator(this.colorPickerIndicator2, dropdown.getValue());
+				});
+			},
+		});
+
+		// GROUP: Advanced
+		const groupAdvanced: SettingDefinitionGroup = {
+			type: 'group',
+			heading: STRINGS.settings.headingAdvanced,
+			items: [],
+		};
+
+		// SETTING: Colorless hover
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.uncolorHover.name,
+			desc: STRINGS.settings.uncolorHover.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.uncolorHover)
+					.onChange(value => {
+						this.plugin.settings.uncolorHover = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+				});
+			},
+		});
+
+		// SETTING: Colorless drag
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.uncolorDrag.name,
+			desc: STRINGS.settings.uncolorDrag.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.uncolorDrag)
+					.onChange(value => {
+						this.plugin.settings.uncolorDrag = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+				});
+			},
+		});
+
+		// SETTING: Colorless selection
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.uncolorSelect.name,
+			desc: STRINGS.settings.uncolorSelect.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.uncolorSelect)
+					.onChange(value => {
+						this.plugin.settings.uncolorSelect = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshBody();
+					});
+				});
+			},
+		});
+
+		// SETTING: Colorless ribbon button
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.uncolorQuick.name,
+			desc: STRINGS.settings.uncolorQuick.desc,
+			render: setting => { setting
+				.addToggle(toggle => { toggle
+					.setValue(this.plugin.settings.uncolorQuick)
+					.onChange(value => {
+						this.plugin.settings.uncolorQuick = value;
+						void this.plugin.saveSettings();
+						this.plugin.refreshManagers('ribbon');
+					});
+				});
+			},
+		});
+
+		// SETTING: View unused icons
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.viewUnusedIcons.name,
+			desc: STRINGS.settings.viewUnusedIcons.desc,
+			render: setting => { setting
+				.addButton(button => { button
+					.setButtonText(STRINGS.settings.manage)
+					.onClick(async () => {
+						const unusedIcons: FileItem[] = [];
+						for (const fileId of Object.keys(this.plugin.settings.fileIcons)) {
+							if (!await this.app.vault.adapter.exists(fileId)) {
+								const file = this.plugin.getFileItem(fileId);
+								unusedIcons.push(file);
+							}
+						}
+						UsageChecker.open(this.plugin, unusedIcons);
+					});
+				});
+			},
+		});
+
+		// SETTING: Maximum automatic backups
+		groupAdvanced.items?.push({
+			name: STRINGS.settings.maxBackups.name,
+			desc: STRINGS.settings.maxBackups.desc,
+			render: setting => { setting
+				.then(setting => {
+					if (Platform.isDesktop) setting.addExtraButton(button => { button
+						.setIcon('lucide-folder-open')
+						.setTooltip(STRINGS.settings.maxBackups.openPluginFolder)
+						.onClick(() => {
+							// @ts-expect-error (Private API)
+							this.app.openWithDefaultApp(this.plugin.manifest.dir ?? '');
+						});
+					});
+				})
+				.addDropdown(dropdown => { dropdown
+					.addOptions({
+						0: STRINGS.settings.values.none,
+						1: '1',
+						2: '2',
+						3: '3',
+						4: '4',
+						5: '5',
+						6: '6',
+						7: '7',
+						8: '8',
+						9: '9',
+					})
+					.setValue(this.plugin.settings.maxBackups.toString())
+					.onChange(value => {
+						this.plugin.settings.maxBackups = Number(value) || 0;
+						void this.plugin.saveSettings();
+					});
+				});
+			},
+		});
+
+		return [
+			groupTop,
+			groupSidebarsAndTabs,
+			groupEditor,
+			groupMenusAndDialogs,
+			groupIconPicker,
+			groupAdvanced,
+		];
+	}
+
+	/**
+	 * @override
+	 */
 	display(): void {
 		this.containerEl.empty();
 
 		// GROUP: Top
 		const groupTop = new SettingGroup(this.containerEl);
 
-		// SETTING: Rules
+		// SETTING: Rulebook
 		groupTop.addSetting(setting => { setting
 			.setName(STRINGS.settings.rulebook.name)
 			.setDesc(STRINGS.settings.rulebook.desc)
@@ -57,10 +573,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.biggerIconsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('on', STRINGS.settings.values.on)
-				.addOption('desktop', STRINGS.settings.values.desktop)
-				.addOption('mobile', STRINGS.settings.values.mobile)
-				.addOption('off', STRINGS.settings.values.off)
+				.addOptions({ 
+					on: STRINGS.settings.values.on,
+					desktop: STRINGS.settings.values.desktop,
+					mobile: STRINGS.settings.values.mobile,
+					off: STRINGS.settings.values.off,
+				})
 				.setValue(this.plugin.settings.biggerIcons)
 				.onChange(value => {
 					this.refreshIndicator(this.biggerIconsIndicator, value);
@@ -87,10 +605,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.clickableIconsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('on', STRINGS.settings.values.on)
-				.addOption('desktop', STRINGS.settings.values.desktop)
-				.addOption('mobile', STRINGS.settings.values.mobile)
-				.addOption('off', STRINGS.settings.values.off)
+				.addOptions({ 
+					on: STRINGS.settings.values.on,
+					desktop: STRINGS.settings.values.desktop,
+					mobile: STRINGS.settings.values.mobile,
+					off: STRINGS.settings.values.off,
+				})
 				.setValue(this.plugin.settings.clickableIcons)
 				.onChange(value => {
 					this.refreshIndicator(this.clickableIconsIndicator, value);
@@ -239,7 +759,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			});
 		});
 
-		// SETTING: Show "Move file" dialog icons
+		// SETTING: Show “Move file” dialog icons
 		groupMenusAndDialogs.addSetting(setting => { setting
 			.setName(STRINGS.settings.showMoveFileIcons.name)
 			.setDesc(STRINGS.settings.showMoveFileIcons.desc)
@@ -265,10 +785,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.showItemNameIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('on', STRINGS.settings.values.on)
-				.addOption('desktop', STRINGS.settings.values.desktop)
-				.addOption('mobile', STRINGS.settings.values.mobile)
-				.addOption('off', STRINGS.settings.values.off)
+				.addOptions({ 
+					on: STRINGS.settings.values.on,
+					desktop: STRINGS.settings.values.desktop,
+					mobile: STRINGS.settings.values.mobile,
+					off: STRINGS.settings.values.off,
+				})
 				.setValue(this.plugin.settings.showItemName)
 				.onChange(value => {
 					this.refreshIndicator(this.showItemNameIndicator, value);
@@ -276,7 +798,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 					void this.plugin.saveSettings();
 				});
 				this.refreshIndicator(this.showItemNameIndicator, dropdown.getValue());
-			})
+			});
 		});
 
 		// SETTING: Use search keywords
@@ -288,10 +810,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.useSearchKeywordsIndicator = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('on', STRINGS.settings.values.on)
-				.addOption('desktop', STRINGS.settings.values.desktop)
-				.addOption('mobile', STRINGS.settings.values.mobile)
-				.addOption('off', STRINGS.settings.values.off)
+				.addOptions({ 
+					on: STRINGS.settings.values.on,
+					desktop: STRINGS.settings.values.desktop,
+					mobile: STRINGS.settings.values.mobile,
+					off: STRINGS.settings.values.off,
+				})
 				.setValue(this.plugin.settings.useSearchKeywords)
 				.onChange(value => {
 					this.refreshIndicator(this.useSearchKeywordsIndicator, value);
@@ -310,7 +834,6 @@ export default class IconicSettingTab extends PluginSettingTab {
 			.addSlider(slider => { slider
 				.setLimits(50, 500, 10)
 				.setValue(this.plugin.settings.maxSearchResults)
-				.setDynamicTooltip()
 				.onChange(value => {
 					this.plugin.settings.maxSearchResults = value;
 					void this.plugin.saveSettings();
@@ -330,8 +853,10 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.colorPickerIndicator1 = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('list', STRINGS.settings.values.list)
-				.addOption('rgb', STRINGS.settings.values.rgb)
+				.addOptions({
+					list: STRINGS.settings.values.list,
+					rgb: STRINGS.settings.values.rgb,
+				})
 				.setValue(this.plugin.settings.colorPicker1)
 				.onChange(value => {
 					this.refreshIndicator(this.colorPickerIndicator1, value);
@@ -354,8 +879,10 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.colorPickerIndicator2 = indicator;
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('list', STRINGS.settings.values.list)
-				.addOption('rgb', STRINGS.settings.values.rgb)
+				.addOptions({
+					list: STRINGS.settings.values.list,
+					rgb: STRINGS.settings.values.rgb,
+				})
 				.setValue(this.plugin.settings.colorPicker2)
 				.onChange(value => {
 					this.refreshIndicator(this.colorPickerIndicator2, value);
@@ -460,16 +987,18 @@ export default class IconicSettingTab extends PluginSettingTab {
 				});
 			})
 			.addDropdown(dropdown => { dropdown
-				.addOption('0', STRINGS.settings.values.none)
-				.addOption('1', '1')
-				.addOption('2', '2')
-				.addOption('3', '3')
-				.addOption('4', '4')
-				.addOption('5', '5')
-				.addOption('6', '6')
-				.addOption('7', '7')
-				.addOption('8', '8')
-				.addOption('9', '9')
+				.addOptions({
+					0: STRINGS.settings.values.none,
+					1: '1',
+					2: '2',
+					3: '3',
+					4: '4',
+					5: '5',
+					6: '6',
+					7: '7',
+					8: '8',
+					9: '9',
+				})
 				.setValue(this.plugin.settings.maxBackups.toString())
 				.onChange(value => {
 					this.plugin.settings.maxBackups = Number(value) || 0;
