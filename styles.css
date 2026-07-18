@@ -140,6 +140,7 @@ a.tag {
 	padding-top: 0.25em;
 }
 .iconic-title-wrapper > .inline-title {
+	width: 100%;
 	font-size: inherit;
 }
 
