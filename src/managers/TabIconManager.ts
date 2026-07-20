@@ -13,25 +13,27 @@ export default class TabIconManager extends IconManager {
 		this.plugin.registerEvent(this.app.workspace.on('layout-change', () => this.refreshIcons()));
 		this.plugin.registerEvent(this.app.workspace.on('active-leaf-change', () => this.refreshIcons()));
 
-		// Refresh icons in tab selector dropdown ▼
-		const tabListEl = activeDocument.body.find('.mod-root .workspace-tab-header-tab-list > .clickable-icon');
-		if (tabListEl) this.setEventListener(tabListEl, 'click', () => {
-			const tabs = this.plugin.getTabItems().filter(tab => tab.isRoot);
-			this.plugin.menuManager?.forSection('tablist', (item, i) => {
-				const tab = tabs[i];
-				if (!tab) return;
-				if (tab.category === 'file') {
-					const rule = this.plugin.ruleManager?.checkRuling('file', tab.id) ?? tab;
+		// Refresh icons in tab selector dropdowns ▼
+		const tabListEls = activeDocument.body.findAll('.mod-root .workspace-tab-header-tab-list > .clickable-icon');
+		for (const tabListEl of tabListEls) {
+			this.setEventListener(tabListEl, 'click', () => {
+				const tabsEl = tabListEl.closest('.workspace-tabs');
+				const tabs = this.plugin.getTabItems().filter(tab => tabsEl?.contains(tab.tabEl));
+				this.plugin.menuManager?.closeAndFlush();
+				this.plugin.menuManager?.forSection('tablist', (item, i) => {
+					const tab = tabs[i];
+					if (!tab) return;
+					// @ts-expect-error (Private API)
+					const iconEl = item.iconEl;
+					if (!(iconEl instanceof HTMLElement)) return;
+					const rule = tab.category === 'file'
+						? this.plugin.ruleManager?.checkRuling('file', tab.id) ?? tab
+						: tab;
 					rule.iconDefault = rule.iconDefault ?? 'lucide-file';
-					// @ts-expect-error (Private API)
-					this.refreshIcon(rule, item.iconEl);
-				} else {
-					tab.iconDefault = tab.iconDefault ?? 'lucide-file';
-					// @ts-expect-error (Private API)
-					this.refreshIcon(tab, item.iconEl);
-				}
+					this.refreshIcon(rule, iconEl);
+				});
 			});
-		});
+		}
 
 		// Refresh active tab icons when a mobile sidebar changes
 		if (Platform.isMobile) {
