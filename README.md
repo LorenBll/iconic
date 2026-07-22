@@ -8,7 +8,7 @@ Click almost any icon on a tab, sidebar, ribbon, or the title bar to swap in one
 
 > ⤿ Themes: [Ayu Light & Mirage](https://github.com/taronull/ayu-obsidian) / [Fancy-a-Story](https://github.com/ElsaTam/obsidian-fancy-a-story) / [Primary](https://github.com/primary-theme/obsidian)
 
-Includes language support for English, Arabic, German, Spanish, French, Indonesian, Japanese, Russian, Ukrainian, and Simplified Chinese. Most of these languages are currently machine-translated, but if you can supply more accurate translations, absolutely send a message or a pull request :)
+Includes language support for English, Arabic, German, Spanish, French, Indonesian, Japanese, Russian, Ukrainian, and Simplified Chinese. Most of these languages are currently machine-translated, but if you can supply more accurate translations, please send a message or a pull request :)
 
 ## Supported items
 
@@ -27,15 +27,15 @@ Includes language support for English, Arabic, German, Spanish, French, Indonesi
 
 ### Changing an icon
 
-Secondary-click an item whose icon you want to change, then click `Change icon` from the menu. You can open menus on mobile by pressing & holding an item. Certain lists like Files, Bookmarks, and Properties let you hold <kbd>Alt</kbd> or <kbd>⇧ Shift</kbd> to select multiple items at once.
+Secondary-click an item from the list above, then click `Change icon` from the menu. You can open menus on mobile by pressing & holding an item. Certain lists like Files, Bookmarks, and Properties let you hold <kbd>Alt</kbd> or <kbd>⇧ Shift</kbd> to select multiple items at once.
 
-Every icon is searchable by name. You can filter between icons and/or emojis by clicking the bottom two toggles. When you find an icon that sings for you, click it to confirm.
+Every icon is searchable by name and keywords, which you can view by hovering over (or long-touching) that icon. You can filter between icons and/or emojis by clicking the toggle buttons at the bottom. When you're ready, click an icon to select it immediately.
 
-You can also choose one of nine optional colors per icon. These colors follow the CSS theme of your vault, so they adjust automatically when it changes. If you prefer a specific RGB color, secondary-click the bubble to open the full color picker.
+You can also choose one of nine named colors per icon. These color tones are determined by your current [CSS theme](https://docs.obsidian.md/Reference/CSS+variables/Foundations/Colors#Extended+colors). If you prefer a specific RGB color, secondary-click the bubble to open the full color picker. Click the `Save` button to apply color changes only.
 
 ![Icon picker](icon-picker.webp)
 
-The icon picker will also display a warning if a rule in your rulebook is overruling its icon. To learn about that feature, see below.
+The icon picker will also display a warning if a rule in your rulebook is overruling its icon. To learn about that feature, see the sections below.
 
 ### Setting up rules
 
@@ -45,19 +45,19 @@ Open the rulebook from the ribbon, from the plugin settings, or by using the `Op
 
 ![Rule picker](rule-picker.webp)
 
-Click the green (+) to add a new rule, or right-click an existing rule to see more actions.
+Click the `+` button to add a new rule, or secondary-click an existing rule to open a submenu with more actions.
 
-Every rule has a name, and an icon, which will overrule the icon of anything that it matches. You can enable and disable a rule using its toggle. Rules at the top of the list have the highest priority, so drag them around as needed!
+Every rule has a name, and an icon, which will overrule the icon of anything that it matches. You can enable and disable a rule using its toggle switch. Rules at the top of the list have the highest priority, and you can drag them up & down using their handles.
+
+To start editing a rule, click the `⚙️` beside it.
 
 ### Editing a rule
 
-To start editing a rule, click the ⚙️ beside it.
-
 ![Rule editor](rule-editor.webp)
 
-You can edit the rule's conditions in this window. A condition is a true or false test — it either matches, or it doesn't, and you can add any number of conditions to a rule. Rules interpret their conditions based on their `All` / `Any` / `None` setting. For example, if you want a rule to match when *any* of its conditions match, click the `Any` button. You can always see what your rule is matching by clicking the `Matches` button at the bottom.
+You can edit a rule's conditions in this window. A condition is a true or false test — it either matches, or it doesn't, and you can add any number of conditions to a rule. Rules interpret their conditions based on their `All` / `Any` / `None` setting. For example, if you want a rule to match when *any* of its conditions match, click the `Any` button. You can always see what your rule is matching by clicking the `Matches` button at the bottom.
 
-When you're using Obsidian, if your rule is overruling an icon, you can secondary-click that icon and choose `Edit rule` to return to this window quickly.
+If a rule is overruling an icon anywhere in Obsidian, you can secondary-click that icon and choose `Edit rule` to return to this window quickly.
 
 There are several types of conditions you can add to a rule:
 
@@ -66,16 +66,16 @@ There are several types of conditions you can add to a rule:
 - `Name` checks the simple name of a `File`/`Folder`
 - `Filename` checks the full name of a `File.md`
 - `Extension` checks the file extension, like `md`, `canvas`, `jpg`, etc.
-- `Folder tree` checks the initial `Path/Leading/To/Your/` file
-- `Path in vault` checks the entire `Path/Leading/To/Your/File.md`
+- `Folder path` checks the initial `Path/Leading/To/Your/` file
+- `Path` checks the entire `Path/Leading/To/Your/File.md`
 - `Headings` checks for `# Headings` inside a note
 - `Links` checks for `[[Links]]` inside a note
 - `Embeds` checks for `![[Embeds]]` inside a note
 - `Tags` checks for tags inside a note, including `#hashtags` and the `tags` property
-- `Properties...` checks the value of a specific property inside a note
-- `Date created` checks the date & time a file was created
-- `Date modified` checks the date & time a file was modified
+- `Created time` checks the date & time a file was created
+- `Modified time` checks the date & time a file was modified
 - `System clock` checks the date & time on your device
+- `Properties...` checks the value of a specific property inside a note
 
 Date & time conditions are checked once every minute, so you can use them to modify your icons in real time.
 
@@ -95,4 +95,7 @@ Sort of, just expect a few visual bugs! They currently do some fighting over con
 
 ## License
 
-This plugin is released under an [MIT No Attribution](https://choosealicense.com/licenses/mit-0/) license, which means you're free to modify and share its source code without crediting the authors of this repository. It also protects those authors from liability for damages, so I recommend using a similar license if you republish this code.
+This plugin is released under an [MIT No Attribution](https://choosealicense.com/licenses/mit-0/) license, which means you're free to modify and republish its source code without crediting the authors of this repository. It also protects those authors from liability for accidental damages, so I recommend using a similar license if you republish this code.
+
+> [!IMPORTANT]
+> This license does **not** cover the [`/res`](https://github.com/gfxholo/iconic/tree/main/res) folder, which contains copyrighted text licensed by Lucide Icons and Unicode, Inc. These licenses require attribution. See [`LICENSES-THIRD-PARTY`](https://github.com/gfxholo/iconic/blob/main/LICENSES-THIRD-PARTY.md) for details.
