@@ -395,12 +395,6 @@
 			"name": "外部ライブラリを有効化",
 			"desc": "Obsidian に同梱のアイコンに加えて、外部アイコンライブラリからアイコンを読み込みます。"
 		},
-		"externalLibraries": {
-			"name": "インポートするライブラリ",
-			"desc": "インポートする外部アイコンライブラリを選択します。",
-			"addLibrary": "追加",
-			"removeLibrary": "ライブラリを削除"
-		},
 		"headingAdvanced": "詳細",
 		"uncolorHover": {
 			"name": "無色のホバー",

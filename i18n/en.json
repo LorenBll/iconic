@@ -395,12 +395,6 @@
 			"name": "Enable external libraries",
 			"desc": "Import icons from external icon libraries, in addition to the icons bundled with Obsidian."
 		},
-		"externalLibraries": {
-			"name": "Libraries to import",
-			"desc": "Choose which external libraries to import icons from.",
-			"addLibrary": "Add",
-			"removeLibrary": "Remove library"
-		},
 		"headingAdvanced": "Advanced",
 		"uncolorHover": {
 			"name": "Colorless hover",

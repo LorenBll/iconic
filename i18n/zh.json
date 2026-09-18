@@ -395,12 +395,6 @@
 			"name": "启用外部库",
 			"desc": "除了 Obsidian 内置的图标外，还从外部图标库导入图标。"
 		},
-		"externalLibraries": {
-			"name": "要导入的库",
-			"desc": "选择要从哪些外部图标库导入图标。",
-			"addLibrary": "添加",
-			"removeLibrary": "移除库"
-		},
 		"headingAdvanced": "高级",
 		"uncolorHover": {
 			"name": "无色悬停",

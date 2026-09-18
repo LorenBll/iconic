@@ -395,12 +395,6 @@
 			"name": "Activar bibliotecas externas",
 			"desc": "Importa iconos de bibliotecas de iconos externas, además de los iconos incluidos en Obsidian."
 		},
-		"externalLibraries": {
-			"name": "Bibliotecas a importar",
-			"desc": "Elija de qué bibliotecas externas importar iconos.",
-			"addLibrary": "Añadir",
-			"removeLibrary": "Quitar biblioteca"
-		},
 		"headingAdvanced": "Avanzado",
 		"uncolorHover": {
 			"name": "Flotador incoloro",

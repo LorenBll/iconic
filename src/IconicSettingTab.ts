@@ -3,7 +3,6 @@ import IconicPlugin, { FileItem, STRINGS } from 'src/IconicPlugin.js';
 import RulePicker from 'src/dialogs/RulePicker.js';
 import UsageChecker from 'src/dialogs/UsageChecker.js';
 import ExternalLibraryManager from 'src/managers/ExternalLibraryManager.js';
-import ExternalLibraryListComponent from 'src/components/ExternalLibraryListComponent.js';
 
 /**
  * Exposes UI settings for the plugin.
@@ -19,7 +18,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 	private useSearchKeywordsIndicator?: ExtraButtonComponent;
 	private colorPickerIndicator1?: ExtraButtonComponent;
 	private colorPickerIndicator2?: ExtraButtonComponent;
-	private externalLibraryListComponent: ExternalLibraryListComponent | null = null;
+	private externalLibraryToggles: ToggleComponent[] = [];
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin.app, plugin);
@@ -404,7 +403,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryListComponent = null;
+		this.externalLibraryToggles = [];
 		const groupExternalLibraries: SettingDefinitionGroup = {
 			type: 'group',
 			heading: STRINGS.settings.headingExternalLibraries,
@@ -421,14 +420,14 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		groupExternalLibraries.items?.push({
-			name: STRINGS.settings.externalLibraries.name,
-			desc: STRINGS.settings.externalLibraries.desc,
-			render: setting => {
-				this.externalLibraryListComponent = new ExternalLibraryListComponent(setting.controlEl, this.plugin)
-					.setDisabled(!this.plugin.settings.enableExternalLibraries);
-			},
-		});
+		for (const library of ExternalLibraryManager.getLibraries()) {
+			groupExternalLibraries.items?.push({
+				name: library.name,
+				render: setting => { setting
+					.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
+				},
+			});
+		}
 
 		// GROUP: Advanced
 		const groupAdvanced: SettingDefinitionGroup = {
@@ -925,7 +924,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryListComponent = null;
+		this.externalLibraryToggles = [];
 		const groupExternalLibraries = new SettingGroup(this.containerEl)
 			.setHeading(STRINGS.settings.headingExternalLibraries);
 
@@ -937,12 +936,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		groupExternalLibraries.addSetting(setting => { setting
-			.setName(STRINGS.settings.externalLibraries.name)
-			.setDesc(STRINGS.settings.externalLibraries.desc);
-			this.externalLibraryListComponent = new ExternalLibraryListComponent(setting.controlEl, this.plugin)
-				.setDisabled(!this.plugin.settings.enableExternalLibraries);
-		});
+		for (const library of ExternalLibraryManager.getLibraries()) {
+			groupExternalLibraries.addSetting(setting => { setting
+				.setName(library.name)
+				.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
+			});
+		}
 
 		// GROUP: Advanced
 		const groupAdvanced = new SettingGroup(this.containerEl)
@@ -1085,7 +1084,31 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.plugin.settings.enableExternalLibraries = value;
 				void this.plugin.saveSettings();
 				void ExternalLibraryManager.refresh(this.plugin);
-				this.externalLibraryListComponent?.setDisabled(!value);
+				for (const libraryToggle of this.externalLibraryToggles) {
+					libraryToggle.setDisabled(!value);
+				}
 			});
+	}
+
+	/**
+	 * Bind the toggle of a single external library, which controls whether
+	 * that library's icons are imported.
+	 */
+	private bindExternalLibraryToggle(toggle: ToggleComponent, libraryId: string): void {
+		toggle
+			.setValue(this.plugin.settings.externalLibraries.includes(libraryId))
+			.setDisabled(!this.plugin.settings.enableExternalLibraries)
+			.onChange(value => {
+				if (value) {
+					if (!this.plugin.settings.externalLibraries.includes(libraryId)) {
+						this.plugin.settings.externalLibraries.push(libraryId);
+					}
+				} else {
+					this.plugin.settings.externalLibraries = this.plugin.settings.externalLibraries.filter(id => id !== libraryId);
+				}
+				void this.plugin.saveSettings();
+				void ExternalLibraryManager.refresh(this.plugin);
+			});
+		this.externalLibraryToggles.push(toggle);
 	}
 }

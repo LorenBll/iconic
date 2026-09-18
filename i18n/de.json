@@ -395,12 +395,6 @@
 			"name": "Externe Bibliotheken aktivieren",
 			"desc": "Importiert Symbole aus externen Symbolbibliotheken, zusätzlich zu den in Obsidian enthaltenen Symbolen."
 		},
-		"externalLibraries": {
-			"name": "Zu importierende Bibliotheken",
-			"desc": "Wählen Sie, aus welchen externen Bibliotheken Symbole importiert werden sollen.",
-			"addLibrary": "Hinzufügen",
-			"removeLibrary": "Bibliothek entfernen"
-		},
 		"headingAdvanced": "Erweitert",
 		"uncolorHover": {
 			"name": "Farbloses Hovern",
