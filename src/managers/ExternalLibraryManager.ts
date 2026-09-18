@@ -3,6 +3,36 @@ import type IconicPlugin from 'src/IconicPlugin.js';
 import { STRINGS } from 'src/IconicPlugin.js';
 
 /**
+ * Rendering options applied to every icon in a library. Defaults match
+ * Lucide's look (24×24, stroked with rounded caps); set these to render
+ * packs that use different proportions or filled icons.
+ */
+export interface ExternalLibraryStyle {
+	/** SVG `viewBox` of each icon, e.g. `0 0 24 24`. */
+	viewBox?: string;
+	/** SVG `fill` attribute, e.g. `none` (stroked) or `currentColor` (filled). */
+	fill?: string;
+	/** SVG `stroke` attribute, e.g. `currentColor` (stroked) or `none` (filled). */
+	stroke?: string;
+	/** SVG `stroke-width` attribute. */
+	strokeWidth?: number;
+	/** SVG `stroke-linecap` attribute. */
+	strokeLinecap?: string;
+	/** SVG `stroke-linejoin` attribute. */
+	strokeLinejoin?: string;
+}
+
+/**
+ * A single icon's renderable data after parsing.
+ */
+export interface ExternalIconData {
+	/** Inner SVG markup (the elements inside the `<svg>` wrapper). */
+	markup: string;
+	/** Search keywords. */
+	tags?: string[];
+}
+
+/**
  * An external icon library: a third-party collection of icons that can be
  * imported alongside the built-in Lucide icons.
  */
@@ -13,17 +43,37 @@ export interface ExternalLibrary {
 	name: string;
 	/**
 	 * URLs of JSON files listing the library's icons, tried in order.
-	 * Each entry maps an icon name to either an icon node array
-	 * (`[[tag, attrs], ...]`), or an object containing `iconNode` and
-	 * optional `tags` (search keywords).
 	 */
 	sources: string[];
+	/**
+	 * Rendering options for this library's icons. Defaults to Lucide's look,
+	 * so stroked packs need no configuration; filled packs or packs with a
+	 * different viewBox should set the matching options.
+	 */
+	style?: ExternalLibraryStyle;
+	/**
+	 * Optional adapter converting the fetched data into icon entries, keyed
+	 * by icon name. The default parser understands Lucide icon node arrays,
+	 * `{ iconNode, tags }` objects, and raw SVG markup; provide `parse` to
+	 * support a different source format.
+	 */
+	parse?: (data: unknown) => Record<string, ExternalIconData | string>;
 }
 
 /**
  * The catalog of supported external libraries. The mechanism is data-driven:
- * adding a new entry here is enough to make it selectable in the settings,
- * so future libraries can be supported without further code changes.
+ * adding a new entry here is enough to make it selectable in the settings.
+ *
+ * Example of a filled pack with a different viewBox:
+ * ```ts
+ * {
+ *   id: 'my-pack',
+ *   name: 'My Pack',
+ *   style: { viewBox: '0 0 24 24', fill: 'currentColor', stroke: 'none' },
+ *   sources: ['https://example.com/icons.json'],
+ *   parse: data => ({ ... }), // custom adapter for the pack's format
+ * }
+ * ```
  */
 export const EXTERNAL_LIBRARIES: ExternalLibrary[] = [
 	{
@@ -39,6 +89,18 @@ export const EXTERNAL_LIBRARIES: ExternalLibrary[] = [
 ];
 
 /**
+ * Default rendering style, matching Lucide.
+ */
+const DEFAULT_STYLE: Required<ExternalLibraryStyle> = {
+	viewBox: '0 0 24 24',
+	fill: 'none',
+	stroke: 'currentColor',
+	strokeWidth: 2,
+	strokeLinecap: 'round',
+	strokeLinejoin: 'round',
+};
+
+/**
  * Manages icons imported from external libraries: fetches their data,
  * exposes them to search, and renders them as inline SVGs.
  */
@@ -47,8 +109,8 @@ export default class ExternalLibraryManager {
 	private static icons = new Map<string, [string, string[]]>();
 	/** Keywords ("tags") of all loaded external icons. */
 	private static keywords = new Set<string>();
-	/** Raw icon node data for rendering, keyed by namespaced ID. */
-	private static iconNodes = new Map<string, unknown[][]>();
+	/** Inner SVG markup for rendering, keyed by namespaced ID. */
+	private static iconSvg = new Map<string, string>();
 	/** Libraries whose data is currently loaded. */
 	private static loaded = new Set<string>();
 
@@ -135,47 +197,96 @@ export default class ExternalLibraryManager {
 	 * Fetch and store the icon data of a single library.
 	 */
 	private static async loadLibrary(library: ExternalLibrary): Promise<void> {
-		let data: Record<string, unknown> | null = null;
+		let data: unknown = null;
 		for (const source of library.sources) {
 			try {
 				const response = await requestUrl({ url: source });
 				const json: unknown = response.json;
 				if (typeof json === 'object' && json !== null && !Array.isArray(json)) {
-					data = json as Record<string, unknown>;
+					data = json;
 					break;
 				}
 			} catch (error) {
 				console.error(`Iconic: failed to fetch external library "${library.name}" from ${source}`, error);
 			}
 		}
-		if (!data) throw new Error(`Iconic: failed to load external library "${library.name}"`);
+		if (data === null) throw new Error(`Iconic: failed to load external library "${library.name}"`);
 
-		for (const [iconName, raw] of Object.entries(data)) {
+		// Parse the source data into icon entries
+		const parse = library.parse ?? ExternalLibraryManager.parseDefault;
+		const icons = parse(data);
+
+		for (const [iconName, value] of Object.entries(icons)) {
+			const icon: ExternalIconData = typeof value === 'string' ? { markup: value } : value;
 			const iconId = library.id + ':' + iconName;
-			const keywords: string[] = [];
-			let node: unknown[][] | null = null;
-
-			if (Array.isArray(raw)) {
-				node = raw as unknown[][];
-			} else if (typeof raw === 'object' && raw !== null) {
-				const entry = raw as Record<string, unknown>;
-				if (Array.isArray(entry.iconNode)) {
-					node = entry.iconNode as unknown[][];
-					if (Array.isArray(entry.tags)) {
-						keywords.push(...entry.tags.map(String));
-					}
-				}
-			}
-
-			if (!node) continue;
-			this.icons.set(iconId, [this.iconIdToName(iconName), keywords.sort()]);
-			for (const keyword of keywords) this.keywords.add(keyword);
-			this.iconNodes.set(iconId, node);
+			const tags = icon.tags?.sort() ?? [];
+			this.icons.set(iconId, [this.iconIdToName(iconName), tags]);
+			for (const keyword of tags) this.keywords.add(keyword);
+			this.iconSvg.set(iconId, icon.markup);
 		}
 
 		// Keep keywords sorted for predictable search behaviour
 		this.keywords = new Set(Array.from(this.keywords).sort());
 		this.loaded.add(library.id);
+	}
+
+	/**
+	 * Default parser for Lucide-style sources: understands icon node arrays,
+	 * `{ iconNode, tags }` objects, and raw SVG markup.
+	 */
+	private static parseDefault(data: unknown): Record<string, ExternalIconData | string> {
+		const icons: Record<string, ExternalIconData | string> = {};
+		const dataObject = typeof data === 'object' && data !== null ? data as Record<string, unknown> : {};
+		for (const [iconName, raw] of Object.entries(dataObject)) {
+			if (Array.isArray(raw)) {
+				icons[iconName] = { markup: ExternalLibraryManager.iconNodeToMarkup(raw as unknown[][]) };
+			} else if (typeof raw === 'object' && raw !== null) {
+				const entry = raw as Record<string, unknown>;
+				if (Array.isArray(entry.iconNode)) {
+					icons[iconName] = {
+						markup: ExternalLibraryManager.iconNodeToMarkup(entry.iconNode as unknown[][]),
+						tags: Array.isArray(entry.tags) ? entry.tags.map(String) : undefined,
+					};
+				} else if (typeof entry.svg === 'string') {
+					icons[iconName] = { markup: ExternalLibraryManager.svgToMarkup(entry.svg) };
+				}
+			} else if (typeof raw === 'string') {
+				icons[iconName] = { markup: ExternalLibraryManager.svgToMarkup(raw) };
+			}
+		}
+		return icons;
+	}
+
+	/**
+	 * Convert a Lucide icon node array (`[[tag, attrs], ...]`) into inner SVG markup.
+	 */
+	static iconNodeToMarkup(node: unknown[][]): string {
+		let markup = '';
+		for (const nodeEntry of node) {
+			const [tag, attrs] = nodeEntry;
+			if (typeof tag !== 'string' || typeof attrs !== 'object' || attrs === null) continue;
+			let attrString = '';
+			for (const [attr, value] of Object.entries(attrs)) {
+				if (attr === 'key') continue; // React key, not a real attribute
+				attrString += ` ${attr}="${String(value).replaceAll('"', '&quot;')}"`;
+			}
+			markup += `<${tag}${attrString}/>`;
+		}
+		return markup;
+	}
+
+	/**
+	 * Normalize an SVG string into inner SVG markup, stripping the outer
+	 * `<svg>` wrapper if one is present (ignoring any leading XML comments).
+	 */
+	static svgToMarkup(svg: string): string {
+		const svgStart = svg.indexOf('<svg');
+		const svgEnd = svg.lastIndexOf('</svg>');
+		if (svgStart > -1 && svgEnd > svgStart) {
+			const wrapper = svg.slice(svgStart, svgEnd + 6);
+			return wrapper.replace(/^<svg[^>]*>/i, '').replace(/<\/svg>\s*$/i, '');
+		}
+		return svg.trim();
 	}
 
 	/**
@@ -186,7 +297,7 @@ export default class ExternalLibraryManager {
 		for (const iconId of Array.from(this.icons.keys())) {
 			if (iconId.startsWith(prefix)) {
 				this.icons.delete(iconId);
-				this.iconNodes.delete(iconId);
+				this.iconSvg.delete(iconId);
 			}
 		}
 		this.keywords = new Set();
@@ -201,34 +312,26 @@ export default class ExternalLibraryManager {
 	 * @returns Whether the icon was found and rendered.
 	 */
 	static setIcon(iconEl: HTMLElement, iconId: string): boolean {
-		const node = this.iconNodes.get(iconId);
-		if (!node) return false;
-		const [, iconName = ''] = iconId.split(':');
+		const markup = this.iconSvg.get(iconId);
+		if (!markup) return false;
+		const [libraryId, iconName = ''] = iconId.split(':');
+		const style = { ...DEFAULT_STYLE, ...this.getLibrary(libraryId ?? '')?.style };
 
 		iconEl.empty();
 		const svgEl = iconEl.createSvg('svg', {
 			cls: ['svg-icon', 'lucide', 'lucide-' + iconName],
 			attr: {
 				xmlns: 'http://www.w3.org/2000/svg',
-				viewBox: '0 0 24 24',
-				fill: 'none',
-				stroke: 'currentColor',
-				'stroke-width': '2',
-				'stroke-linecap': 'round',
-				'stroke-linejoin': 'round',
+				viewBox: style.viewBox,
+				fill: style.fill,
+				stroke: style.stroke,
+				'stroke-width': style.strokeWidth,
+				'stroke-linecap': style.strokeLinecap,
+				'stroke-linejoin': style.strokeLinejoin,
 				'aria-hidden': 'true',
 			},
 		});
-		for (const nodeEntry of node) {
-			const [tag, attrs] = nodeEntry;
-			if (typeof tag !== 'string' || typeof attrs !== 'object' || attrs === null) continue;
-			const cleanAttrs: Record<string, string> = {};
-			for (const [attr, value] of Object.entries(attrs)) {
-				if (attr === 'key') continue; // React key, not a real attribute
-				cleanAttrs[attr] = String(value);
-			}
-			svgEl.createSvg(tag as keyof SVGElementTagNameMap, { attr: cleanAttrs });
-		}
+		svgEl.innerHTML = markup;
 		return true;
 	}
 
