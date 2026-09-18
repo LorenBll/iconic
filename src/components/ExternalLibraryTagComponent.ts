@@ -1,28 +1,28 @@
-import { AbstractInputSuggest, TextComponent, prepareFuzzySearch } from 'obsidian';
+import { AbstractInputSuggest, TextComponent, prepareFuzzySearch, setIcon } from 'obsidian';
 import IconicPlugin, { STRINGS } from 'src/IconicPlugin.js';
 import ExternalLibraryManager, { ExternalLibrary } from 'src/managers/ExternalLibraryManager.js';
 
 /**
  * Tag cloud for choosing which external libraries to import.
  * Libraries are inserted as removable tags via a text input that only
- * accepts libraries from the known catalog.
+ * accepts libraries from the known catalog. Styled like Obsidian's native
+ * multi-select pills (e.g. the `tags` property).
  */
 export default class ExternalLibraryTagComponent {
 	private readonly plugin: IconicPlugin;
+	private readonly containerEl: HTMLElement;
 	private readonly inputComponent: TextComponent;
-	private readonly tagsEl: HTMLElement;
+	private pills: HTMLElement[] = [];
 
 	constructor(containerEl: HTMLElement, plugin: IconicPlugin) {
 		this.plugin = plugin;
-		containerEl.addClass('iconic-external-library-tags');
-
-		this.tagsEl = containerEl.createDiv({ cls: 'iconic-external-library-tags-list' });
-		this.renderTags();
+		this.containerEl = containerEl;
+		containerEl.addClass('iconic-external-library-tags', 'multi-select-container');
 
 		this.inputComponent = new TextComponent(containerEl)
 			.setPlaceholder(STRINGS.settings.externalLibraries.addLibrary)
 			.onChange(() => void this.updateInputState());
-		this.inputComponent.inputEl.addClass('iconic-external-library-input');
+		this.inputComponent.inputEl.addClass('multi-select-input');
 
 		new ExternalLibrarySuggest(plugin, this.inputComponent, library => {
 			this.addLibrary(library.id);
@@ -34,6 +34,8 @@ export default class ExternalLibraryTagComponent {
 				this.addExactMatch();
 			}
 		});
+
+		this.renderTags();
 	}
 
 	/**
@@ -45,20 +47,23 @@ export default class ExternalLibraryTagComponent {
 	}
 
 	/**
-	 * Render the current tags.
+	 * Render the current tags as pills before the input.
 	 */
 	private renderTags(): void {
-		this.tagsEl.empty();
-		for (const libraryId of ExternalLibraryTagComponent.getLibraries(this.plugin)) {
+		for (const pill of this.pills) pill.remove();
+		this.pills = [];
+		for (const libraryId of this.getLibraries()) {
 			const library = ExternalLibraryManager.getLibrary(libraryId);
-			const pillEl = this.tagsEl.createDiv({ cls: 'multi-select-pill' });
+			const pillEl = this.containerEl.createDiv({ cls: 'multi-select-pill' });
 			pillEl.createSpan({ cls: 'multi-select-pill-content', text: library?.name ?? libraryId });
 			const removeEl = pillEl.createEl('button', {
 				cls: 'multi-select-pill-remove-button',
 				attr: { 'aria-label': STRINGS.settings.externalLibraries.removeLibrary },
 			});
-			removeEl.setText('Ã—');
+			setIcon(removeEl, 'lucide-x');
 			removeEl.addEventListener('click', () => this.removeLibrary(libraryId));
+			this.containerEl.insertBefore(pillEl, this.inputComponent.inputEl);
+			this.pills.push(pillEl);
 		}
 	}
 
@@ -66,7 +71,7 @@ export default class ExternalLibraryTagComponent {
 	 * Add a library to the tag cloud.
 	 */
 	private addLibrary(libraryId: string): void {
-		if (ExternalLibraryTagComponent.getLibraries(this.plugin).includes(libraryId)) return;
+		if (this.getLibraries().includes(libraryId)) return;
 		this.plugin.settings.externalLibraries.push(libraryId);
 		void this.plugin.saveSettings();
 		void ExternalLibraryManager.refresh(this.plugin);
@@ -79,18 +84,11 @@ export default class ExternalLibraryTagComponent {
 	 * Remove a library from the tag cloud.
 	 */
 	private removeLibrary(libraryId: string): void {
-		this.plugin.settings.externalLibraries = ExternalLibraryTagComponent.getLibraries(this.plugin).filter(id => id !== libraryId);
+		this.plugin.settings.externalLibraries = this.getLibraries().filter(id => id !== libraryId);
 		void this.plugin.saveSettings();
 		void ExternalLibraryManager.refresh(this.plugin);
 		this.renderTags();
 		this.updateInputState();
-	}
-
-	/**
-	 * Get the list of selected library IDs.
-	 */
-	static getLibraries(plugin: IconicPlugin): string[] {
-		return Array.isArray(plugin.settings.externalLibraries) ? plugin.settings.externalLibraries : [];
 	}
 
 	/**
@@ -105,11 +103,22 @@ export default class ExternalLibraryTagComponent {
 	}
 
 	/**
+	 * Get the list of selected library IDs.
+	 */
+	static getLibraries(plugin: IconicPlugin): string[] {
+		return Array.isArray(plugin.settings.externalLibraries) ? plugin.settings.externalLibraries : [];
+	}
+
+	private getLibraries(): string[] {
+		return ExternalLibraryTagComponent.getLibraries(this.plugin);
+	}
+
+	/**
 	 * Hide the input once every known library has been added.
 	 */
 	private updateInputState(): void {
 		const hasRemainingLibraries = ExternalLibraryManager.getLibraries()
-			.some(library => !ExternalLibraryTagComponent.getLibraries(this.plugin).includes(library.id));
+			.some(library => !this.getLibraries().includes(library.id));
 		this.inputComponent.inputEl.toggleClass('iconic-invisible', !hasRemainingLibraries);
 	}
 }
