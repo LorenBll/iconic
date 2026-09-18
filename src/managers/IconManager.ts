@@ -14,6 +14,8 @@ export default abstract class IconManager {
 		options?: boolean | AddEventListenerOptions
 	}>>();
 	private readonly mutationObservers = new WeakMap<HTMLElement, MutationObserver>();
+	/** All observers created by this manager, for cleanup on unload. */
+	private readonly allObservers = new Set<MutationObserver>();
 
 	constructor(plugin: IconicPlugin) {
 		this.app = plugin.app;
@@ -154,10 +156,13 @@ export default abstract class IconManager {
 		if (!element) return;
 		const observer = new MutationObserver(callback);
 		if (this.mutationObservers.has(element)) {
-			this.mutationObservers.get(element)?.disconnect();
+			const oldObserver = this.mutationObservers.get(element);
+			oldObserver?.disconnect();
+			if (oldObserver) this.allObservers.delete(oldObserver);
 		}
 		observer.observe(element, options);
 		this.mutationObservers.set(element, observer);
+		this.allObservers.add(observer);
 	}
 
 	/**
@@ -165,26 +170,22 @@ export default abstract class IconManager {
 	 */
 	protected stopMutationObserver(element: HTMLElement | null): void {
 		if (!element) return;
-		this.mutationObservers.get(element)?.disconnect();
+		const observer = this.mutationObservers.get(element);
+		observer?.disconnect();
 		this.mutationObservers.delete(element);
+		if (observer) this.allObservers.delete(observer);
 	}
 
 	/**
-	 * Remove all event listeners and disconnect all mutation observers set by
-	 * this {@link IconManager}. Call `super.unload()` after any subclass
-	 * cleanup, so stale observers can't react to the unloading refresh.
+	 * Disconnect all mutation observers set by this {@link IconManager}.
+	 * Call `super.unload()` after any subclass cleanup, so stale observers
+	 * can't react to the unloading refresh or ping-pong with a re-enabled
+	 * plugin instance.
 	 */
 	unload(): void {
-		// Remove all event listeners set by this manager
-		(this.eventListeners as unknown as Map<HTMLElement, Map<string, { listener: EventListener, options?: boolean | AddEventListenerOptions }>>)
-			.forEach((listenerMap, element) => {
-				for (const [type, { listener, options }] of listenerMap) {
-					element.removeEventListener(type, listener, options);
-				}
-			});
-
-		// Disconnect all mutation observers set by this manager
-		(this.mutationObservers as unknown as Map<HTMLElement, MutationObserver>)
-			.forEach(observer => observer.disconnect());
+		for (const observer of this.allObservers) {
+			observer.disconnect();
+		}
+		this.allObservers.clear();
 	}
 }
