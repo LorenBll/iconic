@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "インポートするライブラリ",
-			"desc": "インポートする外部アイコンライブラリを選択します。ライブラリ名を入力して Enter キーを押すと追加されます。",
-			"addLibrary": "ライブラリを追加…",
+			"desc": "インポートする外部アイコンライブラリを選択します。",
+			"addLibrary": "追加",
 			"removeLibrary": "ライブラリを削除"
 		},
 		"headingAdvanced": "詳細",

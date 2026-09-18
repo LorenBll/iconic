@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "Pustaka yang akan diimpor",
-			"desc": "Pilih pustaka eksternal untuk mengimpor ikon. Ketik nama pustaka dan tekan Enter untuk menambahkannya.",
-			"addLibrary": "Tambahkan pustaka...",
+			"desc": "Pilih pustaka eksternal untuk mengimpor ikon.",
+			"addLibrary": "Tambah",
 			"removeLibrary": "Hapus pustaka"
 		},
 		"headingAdvanced": "Lanjutan",

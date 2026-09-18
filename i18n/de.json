@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "Zu importierende Bibliotheken",
-			"desc": "Wählen Sie, aus welchen externen Bibliotheken Symbole importiert werden sollen. Geben Sie einen Bibliotheksnamen ein und drücken Sie die Eingabetaste, um ihn hinzuzufügen.",
-			"addLibrary": "Bibliothek hinzufügen…",
+			"desc": "Wählen Sie, aus welchen externen Bibliotheken Symbole importiert werden sollen.",
+			"addLibrary": "Hinzufügen",
 			"removeLibrary": "Bibliothek entfernen"
 		},
 		"headingAdvanced": "Erweitert",

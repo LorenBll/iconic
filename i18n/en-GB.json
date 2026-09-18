@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "Libraries to import",
-			"desc": "Choose which external libraries to import icons from. Type a library name and press Enter to add it.",
-			"addLibrary": "Add a library...",
+			"desc": "Choose which external libraries to import icons from.",
+			"addLibrary": "Add",
 			"removeLibrary": "Remove library"
 		},
 		"headingAdvanced": "Advanced",

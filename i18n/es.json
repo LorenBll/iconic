@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "Bibliotecas a importar",
-			"desc": "Elija de qué bibliotecas externas importar iconos. Escriba un nombre de biblioteca y pulse Intro para añadirla.",
-			"addLibrary": "Añadir una biblioteca...",
+			"desc": "Elija de qué bibliotecas externas importar iconos.",
+			"addLibrary": "Añadir",
 			"removeLibrary": "Quitar biblioteca"
 		},
 		"headingAdvanced": "Avanzado",

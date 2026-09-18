@@ -397,8 +397,8 @@
 		},
 		"externalLibraries": {
 			"name": "要导入的库",
-			"desc": "选择要从哪些外部图标库导入图标。输入库名称并按 Enter 添加。",
-			"addLibrary": "添加库…",
+			"desc": "选择要从哪些外部图标库导入图标。",
+			"addLibrary": "添加",
 			"removeLibrary": "移除库"
 		},
 		"headingAdvanced": "高级",

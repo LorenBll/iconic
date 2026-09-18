@@ -3,7 +3,7 @@ import IconicPlugin, { FileItem, STRINGS } from 'src/IconicPlugin.js';
 import RulePicker from 'src/dialogs/RulePicker.js';
 import UsageChecker from 'src/dialogs/UsageChecker.js';
 import ExternalLibraryManager from 'src/managers/ExternalLibraryManager.js';
-import ExternalLibraryTagComponent from 'src/components/ExternalLibraryTagComponent.js';
+import ExternalLibraryListComponent from 'src/components/ExternalLibraryListComponent.js';
 
 /**
  * Exposes UI settings for the plugin.
@@ -19,7 +19,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 	private useSearchKeywordsIndicator?: ExtraButtonComponent;
 	private colorPickerIndicator1?: ExtraButtonComponent;
 	private colorPickerIndicator2?: ExtraButtonComponent;
-	private externalLibraryTagComponent: ExternalLibraryTagComponent | null = null;
+	private externalLibraryListComponent: ExternalLibraryListComponent | null = null;
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin.app, plugin);
@@ -404,7 +404,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryTagComponent = null;
+		this.externalLibraryListComponent = null;
 		const groupExternalLibraries: SettingDefinitionGroup = {
 			type: 'group',
 			heading: STRINGS.settings.headingExternalLibraries,
@@ -425,7 +425,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 			name: STRINGS.settings.externalLibraries.name,
 			desc: STRINGS.settings.externalLibraries.desc,
 			render: setting => {
-				this.externalLibraryTagComponent = new ExternalLibraryTagComponent(setting.controlEl, this.plugin)
+				this.externalLibraryListComponent = new ExternalLibraryListComponent(setting.controlEl, this.plugin)
 					.setDisabled(!this.plugin.settings.enableExternalLibraries);
 			},
 		});
@@ -925,7 +925,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryTagComponent = null;
+		this.externalLibraryListComponent = null;
 		const groupExternalLibraries = new SettingGroup(this.containerEl)
 			.setHeading(STRINGS.settings.headingExternalLibraries);
 
@@ -940,7 +940,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		groupExternalLibraries.addSetting(setting => { setting
 			.setName(STRINGS.settings.externalLibraries.name)
 			.setDesc(STRINGS.settings.externalLibraries.desc);
-			this.externalLibraryTagComponent = new ExternalLibraryTagComponent(setting.controlEl, this.plugin)
+			this.externalLibraryListComponent = new ExternalLibraryListComponent(setting.controlEl, this.plugin)
 				.setDisabled(!this.plugin.settings.enableExternalLibraries);
 		});
 
@@ -1085,7 +1085,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.plugin.settings.enableExternalLibraries = value;
 				void this.plugin.saveSettings();
 				void ExternalLibraryManager.refresh(this.plugin);
-				this.externalLibraryTagComponent?.setDisabled(!value);
+				this.externalLibraryListComponent?.setDisabled(!value);
 			});
 	}
 }
