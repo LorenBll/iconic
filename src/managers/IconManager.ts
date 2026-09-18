@@ -168,4 +168,23 @@ export default abstract class IconManager {
 		this.mutationObservers.get(element)?.disconnect();
 		this.mutationObservers.delete(element);
 	}
+
+	/**
+	 * Remove all event listeners and disconnect all mutation observers set by
+	 * this {@link IconManager}. Call `super.unload()` after any subclass
+	 * cleanup, so stale observers can't react to the unloading refresh.
+	 */
+	unload(): void {
+		// Remove all event listeners set by this manager
+		(this.eventListeners as unknown as Map<HTMLElement, Map<string, { listener: EventListener, options?: boolean | AddEventListenerOptions }>>)
+			.forEach((listenerMap, element) => {
+				for (const [type, { listener, options }] of listenerMap) {
+					element.removeEventListener(type, listener, options);
+				}
+			});
+
+		// Disconnect all mutation observers set by this manager
+		(this.mutationObservers as unknown as Map<HTMLElement, MutationObserver>)
+			.forEach(observer => observer.disconnect());
+	}
 }
