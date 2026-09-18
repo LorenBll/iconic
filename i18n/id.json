@@ -395,6 +395,12 @@
 			"name": "Aktifkan pustaka eksternal",
 			"desc": "Impor ikon dari pustaka ikon eksternal, selain ikon yang disertakan dalam Obsidian."
 		},
+		"externalLibraries": {
+			"name": "Pustaka yang akan diimpor",
+			"desc": "Pilih pustaka eksternal untuk mengimpor ikon. Ketik nama pustaka dan tekan Enter untuk menambahkannya.",
+			"addLibrary": "Tambahkan pustaka...",
+			"removeLibrary": "Hapus pustaka"
+		},
 		"headingAdvanced": "Lanjutan",
 		"uncolorHover": {
 			"name": "Arahkan tanpa warna",

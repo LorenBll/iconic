@@ -9,10 +9,8 @@ import { STRINGS } from 'src/IconicPlugin.js';
 export interface ExternalLibrary {
 	/** Unique identifier. Icon IDs are namespaced as `{id}:{iconName}`. */
 	id: string;
-	/** Display name shown in the settings. */
+	/** Display name. */
 	name: string;
-	/** Description shown in the settings. */
-	desc: string;
 	/**
 	 * URLs of JSON files listing the library's icons, tried in order.
 	 * Each entry maps an icon name to either an icon node array
@@ -31,7 +29,6 @@ export const EXTERNAL_LIBRARIES: ExternalLibrary[] = [
 	{
 		id: 'lab',
 		name: 'Lab',
-		desc: 'Import experimental icons from Lucide Lab.',
 		// The primary source mirrors the endpoint used by lucide.dev's icon search.
 		// The fallback is the official npm package data.
 		sources: [
@@ -129,7 +126,7 @@ export default class ExternalLibraryManager {
 	 * Check whether a library is enabled in the plugin settings.
 	 */
 	private static isEnabled(plugin: IconicPlugin, libraryId: string): boolean {
-		return plugin.settings.enableExternalLibraries && plugin.settings.externalLibraries[libraryId] === true;
+		return plugin.settings.enableExternalLibraries && plugin.settings.externalLibraries.includes(libraryId);
 	}
 
 	/**

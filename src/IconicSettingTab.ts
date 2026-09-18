@@ -3,6 +3,7 @@ import IconicPlugin, { FileItem, STRINGS } from 'src/IconicPlugin.js';
 import RulePicker from 'src/dialogs/RulePicker.js';
 import UsageChecker from 'src/dialogs/UsageChecker.js';
 import ExternalLibraryManager from 'src/managers/ExternalLibraryManager.js';
+import ExternalLibraryTagComponent from 'src/components/ExternalLibraryTagComponent.js';
 
 /**
  * Exposes UI settings for the plugin.
@@ -18,7 +19,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 	private useSearchKeywordsIndicator?: ExtraButtonComponent;
 	private colorPickerIndicator1?: ExtraButtonComponent;
 	private colorPickerIndicator2?: ExtraButtonComponent;
-	private externalLibraryToggles: ToggleComponent[] = [];
+	private externalLibraryTagComponent: ExternalLibraryTagComponent | null = null;
 
 	constructor(plugin: IconicPlugin) {
 		super(plugin.app, plugin);
@@ -403,7 +404,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryToggles = [];
+		this.externalLibraryTagComponent = null;
 		const groupExternalLibraries: SettingDefinitionGroup = {
 			type: 'group',
 			heading: STRINGS.settings.headingExternalLibraries,
@@ -420,15 +421,14 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		for (const library of ExternalLibraryManager.getLibraries()) {
-			groupExternalLibraries.items?.push({
-				name: library.name,
-				desc: library.desc,
-				render: setting => { setting
-					.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
-				},
-			});
-		}
+		groupExternalLibraries.items?.push({
+			name: STRINGS.settings.externalLibraries.name,
+			desc: STRINGS.settings.externalLibraries.desc,
+			render: setting => {
+				this.externalLibraryTagComponent = new ExternalLibraryTagComponent(setting.controlEl, this.plugin)
+					.setDisabled(!this.plugin.settings.enableExternalLibraries);
+			},
+		});
 
 		// GROUP: Advanced
 		const groupAdvanced: SettingDefinitionGroup = {
@@ -925,7 +925,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// GROUP: External libraries
-		this.externalLibraryToggles = [];
+		this.externalLibraryTagComponent = null;
 		const groupExternalLibraries = new SettingGroup(this.containerEl)
 			.setHeading(STRINGS.settings.headingExternalLibraries);
 
@@ -937,13 +937,12 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		for (const library of ExternalLibraryManager.getLibraries()) {
-			groupExternalLibraries.addSetting(setting => { setting
-				.setName(library.name)
-				.setDesc(library.desc)
-				.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
-			});
-		}
+		groupExternalLibraries.addSetting(setting => { setting
+			.setName(STRINGS.settings.externalLibraries.name)
+			.setDesc(STRINGS.settings.externalLibraries.desc);
+			this.externalLibraryTagComponent = new ExternalLibraryTagComponent(setting.controlEl, this.plugin)
+				.setDisabled(!this.plugin.settings.enableExternalLibraries);
+		});
 
 		// GROUP: Advanced
 		const groupAdvanced = new SettingGroup(this.containerEl)
@@ -1086,25 +1085,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 				this.plugin.settings.enableExternalLibraries = value;
 				void this.plugin.saveSettings();
 				void ExternalLibraryManager.refresh(this.plugin);
-				for (const libraryToggle of this.externalLibraryToggles) {
-					libraryToggle.setDisabled(!value);
-				}
+				this.externalLibraryTagComponent?.setDisabled(!value);
 			});
-	}
-
-	/**
-	 * Bind the toggle of a single external library, which controls whether
-	 * that library's icons are imported.
-	 */
-	private bindExternalLibraryToggle(toggle: ToggleComponent, libraryId: string): void {
-		toggle
-			.setValue(this.plugin.settings.externalLibraries[libraryId] === true)
-			.setDisabled(!this.plugin.settings.enableExternalLibraries)
-			.onChange(value => {
-				this.plugin.settings.externalLibraries[libraryId] = value;
-				void this.plugin.saveSettings();
-				void ExternalLibraryManager.refresh(this.plugin);
-			});
-		this.externalLibraryToggles.push(toggle);
 	}
 }

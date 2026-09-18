@@ -106,7 +106,7 @@ interface IconicSettings {
 	uncolorQuick: boolean;
 	maxBackups: number;
 	enableExternalLibraries: boolean;
-	externalLibraries: Record<string, boolean>;
+	externalLibraries: string[];
 	dialogState: {
 		iconMode: boolean;
 		emojiMode: boolean;
@@ -171,7 +171,7 @@ const DEFAULT_SETTINGS: IconicSettings = {
 	uncolorQuick: false,
 	maxBackups: 2,
 	enableExternalLibraries: false,
-	externalLibraries: {},
+	externalLibraries: [],
 	dialogState: {
 		iconMode: true,
 		emojiMode: false,

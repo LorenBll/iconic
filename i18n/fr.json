@@ -395,6 +395,12 @@
 			"name": "Activer les bibliothèques externes",
 			"desc": "Importez des icônes de bibliothèques d’icônes externes, en plus des icônes incluses dans Obsidian."
 		},
+		"externalLibraries": {
+			"name": "Bibliothèques à importer",
+			"desc": "Choisissez les bibliothèques d’icônes externes à importer. Saisissez un nom de bibliothèque puis appuyez sur Entrée pour l’ajouter.",
+			"addLibrary": "Ajouter une bibliothèque…",
+			"removeLibrary": "Supprimer la bibliothèque"
+		},
 		"headingAdvanced": "Avancé",
 		"uncolorHover": {
 			"name": "Survol incolore",
