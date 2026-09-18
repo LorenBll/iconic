@@ -1,6 +1,7 @@
 import { App, setIcon } from 'obsidian';
 import IconicPlugin, { Item, Icon, ICONS, EMOJIS } from 'src/IconicPlugin.js';
 import ColorUtils from 'src/utils/ColorUtils.js';
+import ExternalLibraryManager from 'src/managers/ExternalLibraryManager.js';
 
 /**
  * Base class for all icon managers.
@@ -35,26 +36,25 @@ export default abstract class IconManager {
 		if (item.icon) {
 			if (ICONS.has(item.icon)) {
 				setIcon(iconEl, item.icon);
+				iconEl.show();
 			} else if (EMOJIS.has(item.icon)) {
 				iconEl.empty();
 				const emojiEl = iconEl.createDiv({ cls: 'iconic-emoji', text: item.icon });
 				if (item.color) IconManager.colorFilter(emojiEl, item.color);
-			}
-			iconEl.show();
-		} else if (iconEl.hasClass('collapse-icon')) {
-			if (this.plugin.settings.showAllFolderIcons && 'iconDefault' in item && item.iconDefault) {
-				setIcon(iconEl, item.iconDefault);
+				iconEl.show();
+			} else if (ExternalLibraryManager.isExternalIcon(item.icon)) {
+				if (ExternalLibraryManager.setIcon(iconEl, item.icon)) {
+					iconEl.show();
+				} else {
+					// The icon's library is disabled or not yet loaded; show the default icon instead
+					this.setDefaultIcon(item, iconEl);
+				}
 			} else {
-				setIcon(iconEl, 'right-triangle');
-				iconEl.removeClass('iconic-icon');
+				// The icon is no longer supported; show the default icon instead
+				this.setDefaultIcon(item, iconEl);
 			}
-			iconEl.show();
-		} else if ('iconDefault' in item && item.iconDefault) {
-			setIcon(iconEl, item.iconDefault);
-			iconEl.show();
 		} else {
-			iconEl.removeClass('iconic-icon');
-			iconEl.hide();
+			this.setDefaultIcon(item, iconEl);
 		}
 
 		const svgEl = iconEl.find('.svg-icon');
@@ -70,6 +70,27 @@ export default abstract class IconManager {
 			this.setEventListener(iconEl, 'click', onClick, { capture: true });
 		} else {
 			this.stopEventListener(iconEl, 'click');
+		}
+	}
+
+	/**
+	 * Refresh a given element with its default icon.
+	 */
+	private setDefaultIcon(item: Item | Icon, iconEl: HTMLElement): void {
+		if (iconEl.hasClass('collapse-icon')) {
+			if (this.plugin.settings.showAllFolderIcons && 'iconDefault' in item && item.iconDefault) {
+				setIcon(iconEl, item.iconDefault);
+			} else {
+				setIcon(iconEl, 'right-triangle');
+				iconEl.removeClass('iconic-icon');
+			}
+			iconEl.show();
+		} else if ('iconDefault' in item && item.iconDefault) {
+			setIcon(iconEl, item.iconDefault);
+			iconEl.show();
+		} else {
+			iconEl.removeClass('iconic-icon');
+			iconEl.hide();
 		}
 	}
 
