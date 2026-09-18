@@ -49,7 +49,7 @@ export default class ExternalLibraryTagComponent {
 	 */
 	private renderTags(): void {
 		this.tagsEl.empty();
-		for (const libraryId of this.plugin.settings.externalLibraries) {
+		for (const libraryId of ExternalLibraryTagComponent.getLibraries(this.plugin)) {
 			const library = ExternalLibraryManager.getLibrary(libraryId);
 			const pillEl = this.tagsEl.createDiv({ cls: 'multi-select-pill' });
 			pillEl.createSpan({ cls: 'multi-select-pill-content', text: library?.name ?? libraryId });
@@ -57,7 +57,7 @@ export default class ExternalLibraryTagComponent {
 				cls: 'multi-select-pill-remove-button',
 				attr: { 'aria-label': STRINGS.settings.externalLibraries.removeLibrary },
 			});
-			removeEl.setText('×');
+			removeEl.setText('Ã—');
 			removeEl.addEventListener('click', () => this.removeLibrary(libraryId));
 		}
 	}
@@ -66,7 +66,7 @@ export default class ExternalLibraryTagComponent {
 	 * Add a library to the tag cloud.
 	 */
 	private addLibrary(libraryId: string): void {
-		if (this.plugin.settings.externalLibraries.includes(libraryId)) return;
+		if (ExternalLibraryTagComponent.getLibraries(this.plugin).includes(libraryId)) return;
 		this.plugin.settings.externalLibraries.push(libraryId);
 		void this.plugin.saveSettings();
 		void ExternalLibraryManager.refresh(this.plugin);
@@ -79,11 +79,18 @@ export default class ExternalLibraryTagComponent {
 	 * Remove a library from the tag cloud.
 	 */
 	private removeLibrary(libraryId: string): void {
-		this.plugin.settings.externalLibraries = this.plugin.settings.externalLibraries.filter(id => id !== libraryId);
+		this.plugin.settings.externalLibraries = ExternalLibraryTagComponent.getLibraries(this.plugin).filter(id => id !== libraryId);
 		void this.plugin.saveSettings();
 		void ExternalLibraryManager.refresh(this.plugin);
 		this.renderTags();
 		this.updateInputState();
+	}
+
+	/**
+	 * Get the list of selected library IDs.
+	 */
+	static getLibraries(plugin: IconicPlugin): string[] {
+		return Array.isArray(plugin.settings.externalLibraries) ? plugin.settings.externalLibraries : [];
 	}
 
 	/**
@@ -102,7 +109,7 @@ export default class ExternalLibraryTagComponent {
 	 */
 	private updateInputState(): void {
 		const hasRemainingLibraries = ExternalLibraryManager.getLibraries()
-			.some(library => !this.plugin.settings.externalLibraries.includes(library.id));
+			.some(library => !ExternalLibraryTagComponent.getLibraries(this.plugin).includes(library.id));
 		this.inputComponent.inputEl.toggleClass('iconic-invisible', !hasRemainingLibraries);
 	}
 }
@@ -127,7 +134,7 @@ class ExternalLibrarySuggest extends AbstractInputSuggest<ExternalLibrary> {
 	 */
 	protected getSuggestions(query: string): ExternalLibrary[] {
 		const queryLower = query.trim().toLowerCase();
-		const selected = new Set(this.plugin.settings.externalLibraries);
+		const selected = new Set(ExternalLibraryTagComponent.getLibraries(this.plugin));
 		const remaining = ExternalLibraryManager.getLibraries()
 			.filter(library => !selected.has(library.id));
 		if (!queryLower) return remaining;

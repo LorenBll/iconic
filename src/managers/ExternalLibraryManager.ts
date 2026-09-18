@@ -126,7 +126,9 @@ export default class ExternalLibraryManager {
 	 * Check whether a library is enabled in the plugin settings.
 	 */
 	private static isEnabled(plugin: IconicPlugin, libraryId: string): boolean {
-		return plugin.settings.enableExternalLibraries && plugin.settings.externalLibraries.includes(libraryId);
+		return plugin.settings.enableExternalLibraries
+			&& Array.isArray(plugin.settings.externalLibraries)
+			&& plugin.settings.externalLibraries.includes(libraryId);
 	}
 
 	/**

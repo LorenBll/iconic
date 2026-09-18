@@ -1227,6 +1227,15 @@ export default class IconicPlugin extends Plugin {
 
 		// Load `data.json`
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+
+		// Normalize external library settings: older versions stored a map of
+		// library IDs to booleans, while newer versions store an array of IDs.
+		if (!Array.isArray(this.settings.externalLibraries)) {
+			const legacyLibraries = this.settings.externalLibraries as unknown as Record<string, boolean> | undefined;
+			this.settings.externalLibraries = Object.entries(legacyLibraries ?? {})
+				.filter(([, enabled]) => enabled === true)
+				.map(([libraryId]) => libraryId);
+		}
 	}
 
 	/**
