@@ -1,4 +1,4 @@
-import { ExtraButtonComponent, Platform, PluginSettingTab, SettingDefinitionGroup, SettingDefinitionItem, SettingGroup, ToggleComponent } from 'obsidian';
+import { ExtraButtonComponent, Platform, PluginSettingTab, Setting, SettingDefinitionGroup, SettingDefinitionItem, SettingGroup, ToggleComponent } from 'obsidian';
 import IconicPlugin, { FileItem, STRINGS } from 'src/IconicPlugin.js';
 import RulePicker from 'src/dialogs/RulePicker.js';
 import UsageChecker from 'src/dialogs/UsageChecker.js';
@@ -420,14 +420,11 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		for (const library of ExternalLibraryManager.getLibraries()) {
-			groupExternalLibraries.items?.push({
-				name: library.name,
-				render: setting => { setting
-					.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
-				},
-			});
-		}
+		groupExternalLibraries.items?.push({
+			name: STRINGS.settings.headingExternalLibraries,
+			aliases: ExternalLibraryManager.getLibraries().map(library => library.name),
+			render: setting => this.renderExternalLibraryGrid(setting),
+		});
 
 		// GROUP: Advanced
 		const groupAdvanced: SettingDefinitionGroup = {
@@ -936,12 +933,7 @@ export default class IconicSettingTab extends PluginSettingTab {
 		});
 
 		// SETTING: Imported libraries
-		for (const library of ExternalLibraryManager.getLibraries()) {
-			groupExternalLibraries.addSetting(setting => { setting
-				.setName(library.name)
-				.addToggle(toggle => this.bindExternalLibraryToggle(toggle, library.id));
-			});
-		}
+		groupExternalLibraries.addSetting(setting => this.renderExternalLibraryGrid(setting));
 
 		// GROUP: Advanced
 		const groupAdvanced = new SettingGroup(this.containerEl)
@@ -1071,6 +1063,22 @@ export default class IconicSettingTab extends PluginSettingTab {
 			default: indicator.extraSettingsEl.hide(); return;
 		}
 		indicator.extraSettingsEl.show();
+	}
+
+	/**
+	 * Render the list of supported external libraries as a grid of toggle
+	 * cells, each cell holding a single library's name and enable toggle.
+	 */
+	private renderExternalLibraryGrid(setting: Setting): void {
+		setting.setClass('iconic-library-row');
+		setting.infoEl.hide();
+		setting.controlEl.hide();
+		const grid = setting.settingEl.createDiv({ cls: 'iconic-library-grid' });
+		for (const library of ExternalLibraryManager.getLibraries()) {
+			const cell = grid.createDiv({ cls: 'iconic-library-cell' });
+			cell.createSpan({ cls: 'iconic-library-name', text: library.name });
+			this.bindExternalLibraryToggle(new ToggleComponent(cell), library.id);
+		}
 	}
 
 	/**
